@@ -63,25 +63,25 @@ static void parse_instruction_jump(Node *node, OPCode operation, Data label) {
 }
 
 static void parse_instruction_register(Node *node, OPCode operation) {
-    // switch (operation) {
-    //     case SAV: {
-    //         node->BAK = node->ACC;
-    //         break;
-    //     }
-    //     case SWP: {
-    //         int tmp = node->BAK;
-    //         node->BAK = node->ACC;
-    //         node->ACC = tmp;
-    //         break;
-    //     }
-    //     case NEG: {
-    //         node->ACC *= -1;
-    //         break;
-    //     }
-    //     default: {
-    //         break;
-    //     }
-    // }
+    switch (operation) {
+        case SAV: {
+            node->BAK = node->ACC;
+            break;
+        }
+        case SWP: {
+            int tmp = node->BAK;
+            node->BAK = node->ACC;
+            node->ACC = tmp;
+            break;
+        }
+        case NEG: {
+            node->ACC *= -1;
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 }
 
 /* Node Calls */
@@ -104,24 +104,24 @@ void node_init(Node *node, bool isOutputNode) {
 }
 
 void node_parse_instruction(Node *node, Instruction input) {
-    // switch (input.operation) {
-    //     case MOV: {
-    //         parse_instruction_mov(node, input.src, input.dest);
-    //         break;
-    //     }
-    //     case SUB: case ADD: case NOP: {
-    //         // Parse Math
-    //         break;
-    //     }
-    //     case JEZ: case JMP: case JNZ: case JGZ: case JLZ: case JRO: {
-    //         // Parse Jump
-    //         break;
-    //     }
-    //     case SAV: case SWP: case NEG: {
-    //         parse_instruction_register(node, input.operation);
-    //         break;
-    //     }
-    // }
+    switch (input.operation) {
+        case MOV: {
+            parse_instruction_mov(node, input.src, input.dest);
+            break;
+        }
+        case SUB: case ADD: case NOP: {
+            // Parse Math
+            break;
+        }
+        case JEZ: case JMP: case JNZ: case JGZ: case JLZ: case JRO: {
+            // Parse Jump
+            break;
+        }
+        case SAV: case SWP: case NEG: {
+            parse_instruction_register(node, input.operation);
+            break;
+        }
+    }
 }
 
 void node_advance(Node *node) {
@@ -132,6 +132,10 @@ void node_tick(Node *node) {
     node_advance(node);
 }
 
+/** Reads data from a node's pipe
+ * @param node: The node that's reading data
+ * @param dataDirection: The direction to read data from
+ */
 ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
     ReadResult result;
     result.isWaiting = false;
@@ -153,7 +157,7 @@ ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
             // Get Data
             result.value = toRead->senderData[oppositeDirection];
 
-            // Reset sender
+            // Reset sender for all pipes
             for (int i = 0; i < AnyOrderCount; i++) {
                 toRead->currentPipe[i] = NULL;
                 toRead->senderData[i] = 0;
@@ -162,6 +166,7 @@ ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
             break;
         }
         case ANY: {
+            // Read nodes in order.
             for (int i = 0; i < AnyOrderCount; i++) {
                 result = node_read(node, AnyOrder[i]);
                 if (!result.isWaiting) {
@@ -169,6 +174,7 @@ ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
                     return result;
                 }
             }
+            result.isWaiting = true;
             break;
         }
         case ACC: {
@@ -191,9 +197,7 @@ ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
     return result;
 }
 
-/**
- * Write data into a node's pipe
- * 
+/** Write data into a node's pipe
  * @param node: The node that's writing the data
  * @param dataDirection: The direction to write the data to
  * @param value: The data to write

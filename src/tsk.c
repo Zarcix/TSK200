@@ -44,6 +44,15 @@ int main(int argc, char **argv) {
     res = node_read(e, UP);
     node_write(e, ACC, res.value);
 
+    // Step 6
+    Instruction negInstruction;
+    negInstruction.operation = NEG;
+    node_parse_instruction(c, negInstruction);
+
+    Instruction swpInstruction;
+    swpInstruction.operation = SWP;
+    node_parse_instruction(c, swpInstruction);
+
     node_debug_print(e, "E");
     node_debug_print(c, "C");
 }   

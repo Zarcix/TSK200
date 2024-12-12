@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "opcodes.h"
+#include "instruction.h"
 
 /**
  * Represents a node

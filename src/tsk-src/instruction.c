@@ -1,4 +1,8 @@
-#include "opcodes.h"
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+
+#include "instruction.h"
 
 DirectionalLocation opposite_of_directional(DirectionalLocation originalDirection) {
     switch (originalDirection) {

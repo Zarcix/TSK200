@@ -6,14 +6,14 @@ all: tsk
 prebuild:
 	mkdir -p build/
 
-tsk: prebuild src/tsk.c node opcodes
-	$(CC) $(CFLAGS) -o tsk src/tsk.c build/node.o build/opcodes.o
+tsk: prebuild src/tsk.c node instruction
+	$(CC) $(CFLAGS) -o tsk src/tsk.c build/node.o build/instruction.o
 
 node: src/tsk-src/node.h src/tsk-src/node.c
 	$(CC) $(CFLAGS) -c src/tsk-src/node.c -o build/node.o
 
-opcodes: src/tsk-src/opcodes.h src/tsk-src/opcodes.c
-	$(CC) $(CFLAGS) -c src/tsk-src/opcodes.c -o build/opcodes.o
+instruction: src/tsk-src/instruction.h src/tsk-src/instruction.c
+	$(CC) $(CFLAGS) -c src/tsk-src/instruction.c -o build/instruction.o
 
 clean:
 	rm -rf build
