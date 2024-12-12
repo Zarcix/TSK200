@@ -3,12 +3,12 @@
 
 #include <stdbool.h>
 
-#include "operation_constants.h"
+#include "opcodes.h"
 
 /**
  * Represents a node
  */
-typedef struct {
+typedef struct NodeStruct {
     // Instructions
     Instruction *instructionList;
     unsigned int instructionCount;
@@ -20,10 +20,12 @@ typedef struct {
     bool isOutput;
 
     // Pipes
-    Node *pipes[4];
+    struct NodeStruct *currentPipe[4];
+    struct NodeStruct *senderPipes[4];
+    int senderData[4];
 
     // Psuedo Memory
-    Node *lastNode;
+    struct NodeStruct *lastNode;
 } Node;
 
 /**
@@ -40,11 +42,15 @@ typedef struct {
 void node_init(Node *node, bool isOutputNode);
 
 void node_parse_instruction(Node *node, Instruction input);
+void node_advance(Node *node);
 void node_tick(Node *node);
 
-ReadResult node_read(Node *node, Data otherNode);
+ReadResult node_read(Node *node, DirectionalLocation dataDirection, Data otherNode);
 void node_write(Node *node, DirectionalLocation dataDirection, int value);
 
 void node_cleanup(Node *node);
+
+// Debugs
+void node_debug_print(Node *node, char* nodeName);
 
 #endif

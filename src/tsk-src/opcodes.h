@@ -37,10 +37,10 @@ typedef enum {
  */
 typedef enum {
 	// Directionals
-	UP,
-	DOWN,
 	LEFT,
 	RIGHT,
+	UP,
+	DOWN,
 	ANY,
 
 	// Special
@@ -78,5 +78,7 @@ typedef struct {
 	Data src;
 	Data dest;
 } Instruction;
+
+DirectionalLocation opposite_of_directional(DirectionalLocation originalDirection);
 
 #endif
