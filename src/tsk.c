@@ -11,12 +11,39 @@ int main(int argc, char **argv) {
     Node *e = malloc(sizeof(Node));
 
     a->senderPipes[LEFT] = b;
+    b->senderPipes[RIGHT] = a;
+
     a->senderPipes[RIGHT] = c;
+    c->senderPipes[LEFT] = a;
+
     a->senderPipes[UP] = d;
+    d->senderPipes[DOWN] = a;
+
     a->senderPipes[DOWN] = e;
+    e->senderPipes[UP] = a;
 
-    node_write(a, LAST, 5);
+    ReadResult res;
 
-    node_debug_print(a, "a");
-    node_debug_print(b, "b");
+    // Step 1
+    node_write(d, DOWN, 1);
+
+    // Step 2
+    res = node_read(a, ANY);
+    node_write(a, RIGHT, res.value);
+
+    // Step 3
+    node_write(d, DOWN, 1);
+    res = node_read(c, LEFT);
+    node_write(c, ACC, res.value);
+
+    // Step 4
+    res = node_read(a, LAST);
+    node_write(a, DOWN, res.value);
+
+    // Step 5
+    res = node_read(e, UP);
+    node_write(e, ACC, res.value);
+
+    node_debug_print(e, "E");
+    node_debug_print(c, "C");
 }   

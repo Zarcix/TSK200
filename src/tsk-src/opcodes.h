@@ -51,6 +51,15 @@ typedef enum {
 	ACC,
 } DirectionalLocation;
 
+static const int AnyOrderCount = 4;
+
+static const DirectionalLocation AnyOrder[4] = {
+	LEFT,
+	RIGHT,
+	UP,
+	DOWN
+};
+
 typedef enum {
 	VALUE,
 	LOCATION

@@ -95,6 +95,7 @@ void node_init(Node *node, bool isOutputNode) {
     node->ACC = 0;
     node->BAK = 0;
     node->isOutput = isOutputNode;
+    node->LAST = NIL;
 
     // Init ports
     for (int i = 0; i < PIPE_COUNT; i++) {
@@ -131,9 +132,62 @@ void node_tick(Node *node) {
     node_advance(node);
 }
 
-ReadResult node_read(Node *node, DirectionalLocation dataDirection, Data otherData) {
+ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
     ReadResult result;
     result.isWaiting = false;
+    DirectionalLocation oppositeDirection = opposite_of_directional(dataDirection);
+
+    switch (dataDirection) {
+        case LEFT: case RIGHT: case UP: case DOWN: {
+            Node *toRead = node->senderPipes[dataDirection];
+            if (toRead == NULL) {
+                result.isWaiting = true;
+                break;
+            }
+
+            if (toRead->currentPipe[oppositeDirection] == NULL) {
+                result.isWaiting = true;
+                break;
+            }
+
+            // Get Data
+            result.value = toRead->senderData[oppositeDirection];
+
+            // Reset sender
+            for (int i = 0; i < AnyOrderCount; i++) {
+                toRead->currentPipe[i] = NULL;
+                toRead->senderData[i] = 0;
+            }
+
+            break;
+        }
+        case ANY: {
+            for (int i = 0; i < AnyOrderCount; i++) {
+                result = node_read(node, AnyOrder[i]);
+                if (!result.isWaiting) {
+                    node->LAST = AnyOrder[i];
+                    return result;
+                }
+            }
+            break;
+        }
+        case ACC: {
+            result.value = node->ACC;
+            break;
+        }
+        case LAST: {
+            result = node_read(node, node->LAST);
+            break;
+        }
+        case NIL: {
+            result.value = 0;
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+
     return result;
 }
 
@@ -145,6 +199,11 @@ ReadResult node_read(Node *node, DirectionalLocation dataDirection, Data otherDa
  * @param value: The data to write
  */
 void node_write(Node *node, DirectionalLocation dataDirection, int value) {
+    for (int i = 0; i < AnyOrderCount; i++) {
+        if (node->currentPipe[i] != NULL) {
+            return;
+        }
+    }
     switch (dataDirection) {
         case LEFT: case RIGHT: case UP: case DOWN: {
             Node *toWrite = node->senderPipes[dataDirection];
@@ -156,11 +215,8 @@ void node_write(Node *node, DirectionalLocation dataDirection, int value) {
             break;
         }
         case ANY: {
-            DirectionalLocation anyOrder[4] = {
-                LEFT, RIGHT, UP, DOWN
-            };
-            for (int i = 0; i < 4; i++) {
-                node_write(node, anyOrder[i], value);
+            for (int i = 0; i < AnyOrderCount; i++) {
+                node_write(node, AnyOrder[i], value);
             }
             break;
         }
@@ -169,11 +225,7 @@ void node_write(Node *node, DirectionalLocation dataDirection, int value) {
             break;
         }
         case LAST: {
-            if (node->lastNode == NULL) {
-                break;
-            }
-            node->currentPipe[dataDirection] = node->lastNode;
-            node->senderData[dataDirection] = value;
+            node_write(node, node->LAST, value);
             break;
         }
         case NIL: default: {
@@ -196,8 +248,15 @@ void node_debug_print(Node *node, char* nodeName) {
     printf("\n");
 
     // Ports
-    printf("\tLeft Pipe: %d\n", node->senderData[LEFT]);
-    printf("\tRight Pipe: %d\n", node->senderData[RIGHT]);
-    printf("\tUp Pipe: %d\n", node->senderData[UP]);
-    printf("\tDown Pipe: %d\n", node->senderData[DOWN]);
+    printf("\tLeft Pipe Val: %d\n", node->senderData[LEFT]);
+    printf("\tLeft Pipe Set: %d\n", node->currentPipe[LEFT] != NULL);
+
+    printf("\tRight Pipe Val: %d\n", node->senderData[RIGHT]);
+    printf("\tRight Pipe Set: %d\n", node->currentPipe[RIGHT] != NULL);
+
+    printf("\tUp Pipe Val: %d\n", node->senderData[UP]);
+    printf("\tUp Pipe Set: %d\n", node->currentPipe[UP] != NULL);
+
+    printf("\tDown Pipe Val: %d\n", node->senderData[DOWN]);
+    printf("\tDown Pipe Set: %d\n", node->currentPipe[DOWN] != NULL);
 }

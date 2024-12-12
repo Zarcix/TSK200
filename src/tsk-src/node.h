@@ -25,7 +25,7 @@ typedef struct NodeStruct {
     int senderData[4];
 
     // Psuedo Memory
-    struct NodeStruct *lastNode;
+    DirectionalLocation LAST;
 } Node;
 
 /**
@@ -45,7 +45,7 @@ void node_parse_instruction(Node *node, Instruction input);
 void node_advance(Node *node);
 void node_tick(Node *node);
 
-ReadResult node_read(Node *node, DirectionalLocation dataDirection, Data otherNode);
+ReadResult node_read(Node *node, DirectionalLocation dataDirection);
 void node_write(Node *node, DirectionalLocation dataDirection, int value);
 
 void node_cleanup(Node *node);
