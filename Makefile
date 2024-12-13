@@ -1,5 +1,5 @@
-CC=gcc
-CFLAGS=-std=c23 -pedantic -Wall -pedantic-errors -Wundef -Wstrict-prototypes  -Wmissing-declarations -g
+CC=clang
+CFLAGS=-std=c23 -pedantic -Wall -pedantic-errors -g
 
 all: tsk
 
@@ -7,7 +7,7 @@ prebuild:
 	mkdir -p build/
 
 tsk: prebuild src/tsk.c node instruction
-	$(CC) $(CFLAGS) -o tsk src/tsk.c build/node.o build/instruction.o
+	$(CC) $(CFLAGS) -o tsk src/tsk.c build/*
 
 node: src/tsk-src/node.h src/tsk-src/node.c
 	$(CC) $(CFLAGS) -c src/tsk-src/node.c -o build/node.o
