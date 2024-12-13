@@ -1,6 +1,4 @@
-#include <stdio.h>
 #include <dirent.h>
-#include <string.h>
 
 #include "instruction.h"
 

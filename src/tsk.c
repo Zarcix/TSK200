@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "./tsk-src/node.h"
 #include "tsk-src/instruction.h"
@@ -101,33 +100,45 @@ void test_node_add_val() {
     center->senderPipes[LEFT] = left;
     left->senderPipes[RIGHT] = center;
 
-    Instruction addInstruction;
-        addInstruction.operation = ADD;
-        {
-            addInstruction.src.type = VALUE;
-            addInstruction.src.value.dataValue = 5;
-        }
-    Instruction movInstructionCenter;
-        movInstructionCenter.operation = ADD;
-        {
-            movInstructionCenter.src.type = LOCATION;
-            movInstructionCenter.src.value.dataValue = NIL;
-        }
+    Instruction centerList[2];
+    { // Center Instructions
+        Instruction addInstruction;
+            addInstruction.operation = ADD;
+            {
+                addInstruction.src.type = VALUE;
+                addInstruction.src.value.dataValue = 5;
+            }
+        Instruction movInstructionCenter;
+            movInstructionCenter.operation = ADD;
+            {
+                movInstructionCenter.src.type = LOCATION;
+                movInstructionCenter.src.value.dataValue = NIL;
+            }
+        centerList[0] = addInstruction;
+        centerList[1] = movInstructionCenter;
+    }
 
-    Instruction movInstructionLeft;
-        movInstructionLeft.operation = MOV;
-        {
-            movInstructionLeft.src.type = VALUE;
-            movInstructionLeft.src.value.dataValue = 2;
-        }
-        {
-            movInstructionLeft.dest.type = LOCATION;
-            movInstructionLeft.dest.value.nodeValue = RIGHT;
-        }
-    
-    node_parse_instruction(center, addInstruction);
-    node_parse_instruction(left, movInstructionLeft);
-    node_parse_instruction(center, movInstructionCenter);
+    Instruction leftList[1];
+    { // Left Instructions
+        Instruction movInstructionLeft;
+            movInstructionLeft.operation = MOV;
+            {
+                movInstructionLeft.src.type = VALUE;
+                movInstructionLeft.src.value.dataValue = 2;
+            }
+            {
+                movInstructionLeft.dest.type = LOCATION;
+                movInstructionLeft.dest.value.nodeValue = RIGHT;
+            }
+        leftList[0] = movInstructionLeft;
+    }
+
+    center->instructionList = centerList;
+    left->instructionList = leftList;
+
+    node_parse_instruction(center, centerList[0]);
+    node_parse_instruction(left, leftList[0]);
+    node_parse_instruction(center, centerList[1]);
 
     node_debug_print(center, "Center");
 }
