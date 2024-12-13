@@ -2,8 +2,9 @@
 #include <stdio.h>
 
 #include "./tsk-src/node.h"
+#include "tsk-src/instruction.h"
 
-int main(int argc, char **argv) {
+void test_node_read_write() {
     Node *a = malloc(sizeof(Node));
     Node *b = malloc(sizeof(Node));
     Node *c = malloc(sizeof(Node));
@@ -55,4 +56,42 @@ int main(int argc, char **argv) {
 
     node_debug_print(e, "E");
     node_debug_print(c, "C");
-}   
+}
+
+void test_node_mov_val_acc() {
+    Node *center = malloc(sizeof(Node));
+    Node *left = malloc(sizeof(Node));
+
+    center->senderPipes[LEFT] = left;
+    left->senderPipes[RIGHT] = center;
+
+    Instruction movInstructionCenter;
+
+    movInstructionCenter.operation = MOV;
+
+    movInstructionCenter.src.type = LOCATION;
+    movInstructionCenter.src.value.dataValue = LEFT;
+
+    movInstructionCenter.dest.type = LOCATION;
+    movInstructionCenter.dest.value.nodeValue = ACC;
+
+    Instruction movInstructionLeft;
+
+    movInstructionLeft.operation = MOV;
+
+    movInstructionLeft.src.type = VALUE;
+    movInstructionLeft.src.value.dataValue = 5;
+
+    movInstructionLeft.dest.type = LOCATION;
+    movInstructionLeft.dest.value.nodeValue = RIGHT;
+
+    node_parse_instruction(center, movInstructionCenter);
+    node_parse_instruction(left, movInstructionLeft);
+    node_parse_instruction(center, movInstructionCenter);
+
+    node_debug_print(center, "Center");
+}
+
+int main(int argc, char **argv) {
+    test_node_mov_val_acc();
+}

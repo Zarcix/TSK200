@@ -1,7 +1,9 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "node.h"
+#include "instruction.h"
 #include "tsk_constants.h"
 
 /* Helper Functions */
@@ -15,25 +17,43 @@ static void node_set_instruction_pointer(Node *node, int newPointer) {
     node->instructionPointer = newPointer;
 }
 
+static int node_get_data(Node *node, Data dataValue) {
+    int val = 0;
+    switch (dataValue.type) {
+        case VALUE: {
+            val = dataValue.value.dataValue;
+            break;
+        }
+        case LOCATION: {
+            ReadResult srcData = node_read(node, dataValue.value.nodeValue);
+            if (srcData.isWaiting) {
+                node->isWaiting = true;
+                break;
+            }
+            node->isWaiting = false;
+            val = srcData.value;
+            break;
+        }
+    }
+    return val;
+}
+
 // Parsers
 static void parse_instruction_mov(Node *node, Data src, Data dest) {
-    // int sourceVal = 0;
-    // switch (src.type) {
-    //     case VALUE: {
-    //         sourceVal = src.value.dataValue;
-    //         break;
-    //     }
-    //     case LOCATION: {
-    //         NodeData *srcData = node_get_neighbor_data(node, src.value.nodeValue);
-    //         if (srcData && srcData->hasData) {
-    //             sourceVal = srcData->data;
-    //         }
-    //         break;
-    //     }
-    // }
+    // Preprocessing Checks
+    if (dest.type != LOCATION) {
+        node->hasError = true;
+        node->errorMessage = "MOV Destination Invalid: Not a location";
+        return;
+    }
 
+    // MOV Parsing
+    int srcVal = node_get_data(node, src);
+    if (node->isWaiting) {
+        return;
+    }
 
-    // printf("%d\n", sourceVal);
+    node_write(node, dest.value.nodeValue, srcVal);
 }
 
 static void parse_instruction_math(Node *node, OPCode operation, Data amount) {
@@ -90,6 +110,7 @@ void node_init(Node *node, bool isOutputNode) {
     node->instructionCount = 0;
     node->instructionPointer = 0;
     node->instructionList = calloc(MAX_INSTRUCTIONS, sizeof(Instruction));
+    node->isWaiting = false;
 
     // Init registers
     node->ACC = 0;
@@ -263,4 +284,15 @@ void node_debug_print(Node *node, char* nodeName) {
 
     printf("\tDown Pipe Val: %d\n", node->senderData[DOWN]);
     printf("\tDown Pipe Set: %d\n", node->currentPipe[DOWN] != NULL);
+
+    printf("\n");
+
+    // Errors
+    printf("\tError: %d\n", node->hasError);
+    printf("\tError Message: %s\n", node->errorMessage);
+
+    printf("\n");
+
+    // Others
+    printf("\tWaiting: %d\n", node->isWaiting);
 }

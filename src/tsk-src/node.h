@@ -13,6 +13,7 @@ typedef struct NodeStruct {
     Instruction *instructionList;
     unsigned int instructionCount;
     unsigned int instructionPointer;
+    bool isWaiting;
 
     // Registers
     int ACC;
@@ -26,6 +27,10 @@ typedef struct NodeStruct {
 
     // Psuedo Memory
     DirectionalLocation LAST;
+    
+    // Error Handling
+    bool hasError;
+    char *errorMessage;
 } Node;
 
 /**
