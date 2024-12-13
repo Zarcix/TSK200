@@ -6,9 +6,8 @@
 #include "instruction.h"
 #include "tsk_constants.h"
 
-/* Helper Functions */
+/* Node Helper Functions */
 
-// Node Helpers
 static void node_set_instruction_pointer(Node *node, int newPointer) {
     if (newPointer >= node->instructionCount || newPointer < 0) {
         newPointer = 0;
@@ -38,8 +37,15 @@ static int node_get_data(Node *node, Data dataValue) {
     return val;
 }
 
-// Parsers
-static void parse_instruction_mov(Node *node, Data src, Data dest) {
+/* Execution Helper Functions */
+
+/** Execution for a MOV instruction
+ *  
+ * @param node: The node that has the move instruction to execute
+ * @param src: The direction or value to move from
+ * @param dest: The direction or value to move to
+ */
+static void execute_instruction_mov(Node *node, Data src, Data dest) {
     // Preprocessing Checks
     if (dest.type != LOCATION) {
         node->hasError = true;
@@ -56,7 +62,13 @@ static void parse_instruction_mov(Node *node, Data src, Data dest) {
     node_write(node, dest.value.nodeValue, srcVal);
 }
 
-static void parse_instruction_math(Node *node, OPCode operation, Data amount) {
+/** Execution for math instrcutions
+ * 
+ * @param node: The node that has a math instruction to execute
+ * @param operation: A math OPCode
+ * @param amount: A direction or value that has the amount to perform
+ */
+static void execute_instruction_math(Node *node, OPCode operation, Data amount) {
     int totalAmount = 0;
 
     // Used for ADD and SUB
@@ -85,11 +97,18 @@ static void parse_instruction_math(Node *node, OPCode operation, Data amount) {
     node->ACC += totalAmount;
 }
 
-static void parse_instruction_jump(Node *node, OPCode operation, Data label) {
+static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
 
 }
 
-static void parse_instruction_register(Node *node, OPCode operation) {
+/** Execution for register instructions
+ * 
+ * Register instructions are instructions that only affect the node's register
+ * 
+ * @param node: The node that has a register instruction to execute
+ * @param operation: A register OPCode that the node will be executing
+ */
+static void execute_instruction_register(Node *node, OPCode operation) {
     switch (operation) {
         case SAV: {
             node->BAK = node->ACC;
@@ -112,6 +131,11 @@ static void parse_instruction_register(Node *node, OPCode operation) {
 }
 
 /* Node Calls */
+/** Initialize a node
+ * 
+ * @param node: The node to initialize
+ * @param isOutputNode: Signifies if the node is an output node
+ */
 void node_init(Node *node, bool isOutputNode) {
     // Init instructions
     node->instructionCount = 0;
@@ -131,14 +155,19 @@ void node_init(Node *node, bool isOutputNode) {
     }
 }
 
+/** Parse a node instruction
+ * 
+ * @param node: The node containing the instruction
+ * @param input: The instruction to parse
+ */
 void node_parse_instruction(Node *node, Instruction input) {
     switch (input.operation) {
         case MOV: {
-            parse_instruction_mov(node, input.src, input.dest);
+            execute_instruction_mov(node, input.src, input.dest);
             break;
         }
         case SUB: case ADD: {
-            parse_instruction_math(node, input.operation, input.src);
+            execute_instruction_math(node, input.operation, input.src);
             break;
         }
         case JEZ: case JMP: case JNZ: case JGZ: case JLZ: case JRO: {
@@ -146,7 +175,7 @@ void node_parse_instruction(Node *node, Instruction input) {
             break;
         }
         case SAV: case SWP: case NEG: {
-            parse_instruction_register(node, input.operation);
+            execute_instruction_register(node, input.operation);
             break;
         }
         case NOP: default: {
@@ -155,8 +184,14 @@ void node_parse_instruction(Node *node, Instruction input) {
     }
 }
 
+/** Step an instruction in a node
+ * 
+ * @param node: The node to step an instruction
+ */
 void node_advance(Node *node) {
-    node_set_instruction_pointer(node, node->instructionPointer + 1);
+    if (!node->isWaiting) {
+        node_set_instruction_pointer(node, node->instructionPointer + 1);
+    }
 }
 
 void node_tick(Node *node) {
@@ -269,10 +304,19 @@ void node_write(Node *node, DirectionalLocation dataDirection, int value) {
     }
 }
 
+/** Clean up node allocation
+ * 
+ * @param node: The node to clean
+ */
 void node_cleanup(Node *node) {
     free(node->instructionList);
 }
 
+/** Print the information contained in the node
+ * 
+ * @param node: The node to print info from
+ * @param nodeName: An identifier for identification in console
+ */
 void node_debug_print(Node *node, char* nodeName) {
     printf("Node: %s\n", nodeName);
 
