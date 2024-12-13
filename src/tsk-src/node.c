@@ -57,25 +57,32 @@ static void parse_instruction_mov(Node *node, Data src, Data dest) {
 }
 
 static void parse_instruction_math(Node *node, OPCode operation, Data amount) {
-    // int totalAmount = 0;
-    // switch (operation) {
-    //     case SUB: {
-    //         if (amount.type == VALUE) {
-    //             totalAmount = amount.value.dataValue;
-    //         } else {
-                
-    //         }
-    //         break;
-    //     }
-    //     case ADD: {
-            
-    //         break;
-    //     }
-    //     case NOP: default: {
-    //         break;
-    //     }
-    // }
-    // node->ACC += totalAmount;
+    int totalAmount = 0;
+
+    // Used for ADD and SUB
+    int mathMultipler = 1;
+    if (operation == SUB) {
+        mathMultipler = -1;
+    }
+
+    switch (operation) {
+        case ADD: case SUB: {
+            if (amount.type == VALUE) {
+                totalAmount = amount.value.dataValue * mathMultipler;
+                break;
+            }
+            int dataVal = node_get_data(node, amount);
+            if (node->isWaiting) {
+                return;
+            }
+            totalAmount = dataVal * mathMultipler;
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+    node->ACC += totalAmount;
 }
 
 static void parse_instruction_jump(Node *node, OPCode operation, Data label) {
@@ -130,8 +137,8 @@ void node_parse_instruction(Node *node, Instruction input) {
             parse_instruction_mov(node, input.src, input.dest);
             break;
         }
-        case SUB: case ADD: case NOP: {
-            // Parse Math
+        case SUB: case ADD: {
+            parse_instruction_math(node, input.operation, input.src);
             break;
         }
         case JEZ: case JMP: case JNZ: case JGZ: case JLZ: case JRO: {
@@ -140,6 +147,9 @@ void node_parse_instruction(Node *node, Instruction input) {
         }
         case SAV: case SWP: case NEG: {
             parse_instruction_register(node, input.operation);
+            break;
+        }
+        case NOP: default: {
             break;
         }
     }

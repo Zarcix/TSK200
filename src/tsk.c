@@ -66,24 +66,26 @@ void test_node_mov_val_acc() {
     left->senderPipes[RIGHT] = center;
 
     Instruction movInstructionCenter;
-
-    movInstructionCenter.operation = MOV;
-
-    movInstructionCenter.src.type = LOCATION;
-    movInstructionCenter.src.value.dataValue = LEFT;
-
-    movInstructionCenter.dest.type = LOCATION;
-    movInstructionCenter.dest.value.nodeValue = ACC;
+        movInstructionCenter.operation = MOV;
+        {
+            movInstructionCenter.src.type = LOCATION;
+            movInstructionCenter.src.value.dataValue = LEFT;
+        }
+        {
+            movInstructionCenter.dest.type = LOCATION;
+            movInstructionCenter.dest.value.nodeValue = ACC;
+        }
 
     Instruction movInstructionLeft;
-
-    movInstructionLeft.operation = MOV;
-
-    movInstructionLeft.src.type = VALUE;
-    movInstructionLeft.src.value.dataValue = 5;
-
-    movInstructionLeft.dest.type = LOCATION;
-    movInstructionLeft.dest.value.nodeValue = RIGHT;
+        movInstructionLeft.operation = MOV;
+        {
+            movInstructionLeft.src.type = VALUE;
+            movInstructionLeft.src.value.dataValue = 5;
+        }
+        {
+            movInstructionLeft.dest.type = LOCATION;
+            movInstructionLeft.dest.value.nodeValue = RIGHT;
+        }
 
     node_parse_instruction(center, movInstructionCenter);
     node_parse_instruction(left, movInstructionLeft);
@@ -92,6 +94,44 @@ void test_node_mov_val_acc() {
     node_debug_print(center, "Center");
 }
 
+void test_node_add_val() {
+    Node *center = malloc(sizeof(Node));
+    Node *left = malloc(sizeof(Node));
+
+    center->senderPipes[LEFT] = left;
+    left->senderPipes[RIGHT] = center;
+
+    Instruction addInstruction;
+        addInstruction.operation = ADD;
+        {
+            addInstruction.src.type = VALUE;
+            addInstruction.src.value.dataValue = 5;
+        }
+    Instruction movInstructionCenter;
+        movInstructionCenter.operation = ADD;
+        {
+            movInstructionCenter.src.type = LOCATION;
+            movInstructionCenter.src.value.dataValue = NIL;
+        }
+
+    Instruction movInstructionLeft;
+        movInstructionLeft.operation = MOV;
+        {
+            movInstructionLeft.src.type = VALUE;
+            movInstructionLeft.src.value.dataValue = 2;
+        }
+        {
+            movInstructionLeft.dest.type = LOCATION;
+            movInstructionLeft.dest.value.nodeValue = RIGHT;
+        }
+    
+    node_parse_instruction(center, addInstruction);
+    node_parse_instruction(left, movInstructionLeft);
+    node_parse_instruction(center, movInstructionCenter);
+
+    node_debug_print(center, "Center");
+}
+
 int main(int argc, char **argv) {
-    test_node_mov_val_acc();
+    test_node_add_val();
 }
