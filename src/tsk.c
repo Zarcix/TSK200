@@ -47,11 +47,11 @@ void test_node_read_write() {
     // Step 6
     Instruction negInstruction;
     negInstruction.operation = NEG;
-    node_parse_instruction(c, negInstruction);
+    node_execute_instruction(c, negInstruction);
 
     Instruction swpInstruction;
     swpInstruction.operation = SWP;
-    node_parse_instruction(c, swpInstruction);
+    node_execute_instruction(c, swpInstruction);
 
     node_debug_print(e, "E");
     node_debug_print(c, "C");
@@ -86,9 +86,9 @@ void test_node_mov_val_acc() {
             movInstructionLeft.dest.value.nodeValue = RIGHT;
         }
 
-    node_parse_instruction(center, movInstructionCenter);
-    node_parse_instruction(left, movInstructionLeft);
-    node_parse_instruction(center, movInstructionCenter);
+    node_execute_instruction(center, movInstructionCenter);
+    node_execute_instruction(left, movInstructionLeft);
+    node_execute_instruction(center, movInstructionCenter);
 
     node_debug_print(center, "Center");
 }
@@ -112,7 +112,7 @@ void test_node_add_val() {
             movInstructionCenter.operation = ADD;
             {
                 movInstructionCenter.src.type = LOCATION;
-                movInstructionCenter.src.value.dataValue = NIL;
+                movInstructionCenter.src.value.dataValue = LEFT;
             }
         centerList[0] = addInstruction;
         centerList[1] = movInstructionCenter;
@@ -134,11 +134,14 @@ void test_node_add_val() {
     }
 
     center->instructionList = centerList;
+    center->instructionCount = 2;
     left->instructionList = leftList;
+    left->instructionCount = 1;
 
-    node_parse_instruction(center, centerList[0]);
-    node_parse_instruction(left, leftList[0]);
-    node_parse_instruction(center, centerList[1]);
+    for (int i = 0; i < 2; i++) {
+        node_tick(center);
+        node_tick(left);
+    }
 
     node_debug_print(center, "Center");
 }

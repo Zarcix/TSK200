@@ -46,7 +46,7 @@ typedef struct {
 
 void node_init(Node *node, bool isOutputNode);
 
-void node_parse_instruction(Node *node, Instruction input);
+void node_execute_instruction(Node *node, Instruction input);
 void node_advance(Node *node);
 void node_tick(Node *node);
 

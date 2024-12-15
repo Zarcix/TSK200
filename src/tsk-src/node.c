@@ -160,7 +160,7 @@ void node_init(Node *node, bool isOutputNode) {
  * @param node: The node containing the instruction
  * @param input: The instruction to parse
  */
-void node_parse_instruction(Node *node, Instruction input) {
+void node_execute_instruction(Node *node, Instruction input) {
     switch (input.operation) {
         case MOV: {
             execute_instruction_mov(node, input.src, input.dest);
@@ -195,6 +195,12 @@ void node_advance(Node *node) {
 }
 
 void node_tick(Node *node) {
+    // Ensure that the pointer loops back to the beginning
+    if (node->instructionPointer >= node->instructionCount) {
+        node->instructionPointer = 0;
+    }
+    Instruction toExecute = node->instructionList[node->instructionPointer];
+    node_execute_instruction(node, toExecute);
     node_advance(node);
 }
 
