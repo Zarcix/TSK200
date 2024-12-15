@@ -131,6 +131,7 @@ static void execute_instruction_register(Node *node, OPCode operation) {
 }
 
 /* Node Calls */
+
 /** Initialize a node
  * 
  * @param node: The node to initialize

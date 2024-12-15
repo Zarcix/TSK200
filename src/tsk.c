@@ -147,5 +147,6 @@ void test_node_add_val() {
 }
 
 int main(int argc, char **argv) {
-    test_node_add_val();
+    //test_node_add_val();
+    tsk_to_node("sigh-commands");
 }
