@@ -33,6 +33,9 @@ static int node_get_data(Node *node, Data dataValue) {
             val = srcData.value;
             break;
         }
+        default: {
+            break;
+        }
     }
     return val;
 }
@@ -98,7 +101,48 @@ static void execute_instruction_math(Node *node, OPCode operation, Data amount) 
 }
 
 static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
+    // int here to detect for negative jumps
+    int newIP = 0;
+    switch (operation) {
+        case JEZ: {
+            break;
+        }
+        case JMP: {
+            break;
+        }
+        case JNZ: {
+            break;
+        }
+        case JGZ: {
+            break;
+        }
+        case JLZ: {
+            break;
+        }
+        case JRO: {
+            if (label.type == LABEL) {
+                printf("Invalid type for JRO.");
+                break;
+            }
 
+            int jumpOffset = node_get_data(node, label);
+            if (node->isWaiting) {
+                return;
+            }
+
+            newIP = node->instructionPointer + jumpOffset;
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+
+    // Check for underflows
+    if (newIP - 1 < 0) {
+        newIP = 0;
+    }
+    node->instructionPointer = newIP - 1;
 }
 
 /** Execution for register instructions
@@ -172,7 +216,7 @@ void node_execute_instruction(Node *node, Instruction input) {
             break;
         }
         case JEZ: case JMP: case JNZ: case JGZ: case JLZ: case JRO: {
-            // Parse Jump
+            execute_instruction_jump(node, input.operation, input.src);
             break;
         }
         case SAV: case SWP: case NEG: {

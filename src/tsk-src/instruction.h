@@ -62,11 +62,13 @@ static const DirectionalLocation AnyOrder[4] = {
 
 typedef enum {
 	VALUE,
-	LOCATION
+	LOCATION,
+	LABEL
 } DataType;
 
 typedef struct {
 	union {
+		char* label;
 		int dataValue;
 		DirectionalLocation nodeValue;
 	} value;

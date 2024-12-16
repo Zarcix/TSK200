@@ -146,6 +146,14 @@ void test_node_add_val() {
     node_debug_print(center, "Center");
 }
 
-int main(int argc, char **argv) {
+void test_node_jro() {
     Node** nodeList = tsk_to_node("sigh-commands");
+    for (int i = 0; i < 3; i++) {
+        node_tick(nodeList[0]);
+        node_debug_print(nodeList[0], "Center");
+    }
+}
+
+int main(int argc, char **argv) {
+    test_node_jro();
 }
