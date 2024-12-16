@@ -89,7 +89,6 @@ typedef struct {
 } Instruction;
 
 DirectionalLocation opposite_of_directional(DirectionalLocation originalDirection);
-Instruction** tsk_to_node(char* tskPath);
 
 OPCode string_to_opcode(char* inputString);
 DirectionalLocation string_to_direction(char* inputString);

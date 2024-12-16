@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
 #include "./tsk-src/node.h"
-#include "tsk-src/instruction.h"
+#include "./tsk-src/tsk_loader.h"
 
 void test_node_read_write() {
     Node *a = malloc(sizeof(Node));
@@ -147,6 +147,5 @@ void test_node_add_val() {
 }
 
 int main(int argc, char **argv) {
-    //test_node_add_val();
-    tsk_to_node("sigh-commands");
+    Node** nodeList = tsk_to_node("sigh-commands");
 }
