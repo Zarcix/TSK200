@@ -105,3 +105,17 @@ DirectionalLocation string_to_direction(char* inputString) {
 
     return NIL;
 }
+
+bool direction_is_node_direction(DirectionalLocation directionInQuestion) {
+    switch (directionInQuestion) {
+        case LEFT:
+        case RIGHT:
+        case UP:
+        case DOWN: {
+            return true;
+        }
+        default: {
+            return false;
+        }
+    }
+}

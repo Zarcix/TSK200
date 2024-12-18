@@ -99,5 +99,6 @@ OPCode string_to_opcode(char* inputString);
 DirectionalLocation string_to_direction(char* inputString);
 
 bool opcode_is_jump_instruction(OPCode operation);
+bool direction_is_node_direction(DirectionalLocation directionInQuestion);
 
 #endif
