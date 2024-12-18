@@ -234,9 +234,22 @@ void node_execute_instruction(Node *node, Instruction input) {
  * @param node: The node to step an instruction
  */
 void node_advance(Node *node) {
-    if (!node->isWaiting) {
-        node_set_instruction_pointer(node, node->instructionPointer + 1);
+    if (node->isWaiting) {
+        return;
     }
+
+    // Initially increment
+    node_set_instruction_pointer(node, node->instructionPointer + 1);
+
+    // Pass over labels
+    while (node->instructionList[node->instructionPointer].operation == OPLBL) {
+        node_set_instruction_pointer(node, node->instructionPointer + 1);
+        if (node->instructionPointer > node->instructionCount) {
+            node_set_instruction_pointer(node, 0);
+        }
+    }
+
+    printf("IP: %d\n", node->instructionPointer);
 }
 
 void node_tick(Node *node) {

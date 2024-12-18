@@ -7,9 +7,24 @@
 #include "./tsk_constants.h"
 
 Instruction* parse_tsk_line(char* line) {
+    if (NULL == line) {
+        return NULL;
+    }
+
     Instruction* tskOperation = malloc(sizeof(Instruction));
-    
+
+    if (strstr(line, ":")) {
+        char* token = strtok(line, ":");
+        token[strcspn(token, "\n")] = 0;
+        tskOperation->operation = OPLBL;
+        tskOperation->src.type = LABEL;
+        tskOperation->src.value.label = token;
+        printf("'%s'\n", token);
+        return tskOperation;
+    }
+
     char* token = strtok(line, " ");
+    token[strcspn(token, "\n")] = 0;
 
     if (token[0] && token[0] == '#') {
         return NULL;
@@ -131,8 +146,6 @@ Node** read_tsk_nodes(char* tskPath) {
             i++;
         }
     }
-
-    // TODO Read Node Topology
 
     return nodeList;
 }

@@ -25,6 +25,9 @@ typedef enum {
 
 	// Movement
 	MOV,
+
+	// Other
+	OPLBL,
 } OPCode;
 
 /**
