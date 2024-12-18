@@ -2,6 +2,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "instruction.h"
 
@@ -27,6 +28,26 @@ DirectionalLocation opposite_of_directional(DirectionalLocation originalDirectio
     }
 }
 
+bool opcode_is_jump_instruction(OPCode operation) {
+    unsigned int instructionCount = 6;
+    const OPCode JumpInstructionList[] = {
+        JEZ,
+        JMP,
+        JNZ,
+        JGZ,
+        JLZ,
+        JRO
+    };
+
+    for (int i = 0; i < instructionCount; i++) {
+        if (operation == JumpInstructionList[i]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 OPCode string_to_opcode(char* inputString) {
     const char *OPCodeString[] = {
         "SUB",
@@ -44,7 +65,8 @@ OPCode string_to_opcode(char* inputString) {
         "SAV",
         "SWP",
 
-        "MOV"
+        "MOV",
+        "OPLBL"
     };
 
     int op_code_num = 0;

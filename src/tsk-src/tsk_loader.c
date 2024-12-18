@@ -5,6 +5,7 @@
 
 #include "./node.h"
 #include "./tsk_constants.h"
+#include "instruction.h"
 
 Instruction* parse_tsk_line(char* line) {
     if (NULL == line) {
@@ -18,7 +19,8 @@ Instruction* parse_tsk_line(char* line) {
         token[strcspn(token, "\n")] = 0;
         tskOperation->operation = OPLBL;
         tskOperation->src.type = LABEL;
-        tskOperation->src.value.label = token;
+        tskOperation->src.value.label = malloc(MAX_LABEL_LEN);
+        strcpy(tskOperation->src.value.label, token);
         printf("'%s'\n", token);
         return tskOperation;
     }
@@ -44,6 +46,13 @@ Instruction* parse_tsk_line(char* line) {
                 char *strEnd = NULL;
                 int dataVal;
                 dataVal = strtol(token, &strEnd, 10);
+
+                if (opcode_is_jump_instruction(tskOperation->operation)) {
+                    tskOperation->src.type = LABEL;
+                    tskOperation->src.value.label = malloc(MAX_LABEL_LEN);
+                    strcpy(tskOperation->src.value.label, token);
+                    break;
+                }
 
                 if (strEnd == token) {
                     tskOperation->src.type = LOCATION;

@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "node.h"
 #include "instruction.h"
@@ -38,6 +39,28 @@ static int node_get_data(Node *node, Data dataValue) {
         }
     }
     return val;
+}
+
+static int node_search_for_label(Node *node, char* labelName) {
+    // If label can't be found, just don't jump lol
+    int labelIndex = node->instructionPointer;
+    for (int i = 0; i < node->instructionCount; i++) {
+        if (node->instructionList[i].operation != OPLBL) {
+            continue;
+        }
+
+        if (node->instructionList[i].src.type != LABEL) {
+            continue;
+        }
+
+        char* nodeLabel = node->instructionList[i].src.value.label;
+        
+        if (!strcmp(nodeLabel, labelName)) {
+            labelIndex = i;
+            break;
+        }
+    }
+    return labelIndex;
 }
 
 /* Execution Helper Functions */
@@ -104,10 +127,12 @@ static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
     // int here to detect for negative jumps
     int newIP = 0;
     switch (operation) {
-        case JEZ: {
+        case JMP: {
+            int labelIndex = node_search_for_label(node, label.value.label);
+            node->instructionPointer = labelIndex;
             break;
         }
-        case JMP: {
+        case JEZ: {
             break;
         }
         case JNZ: {
@@ -240,16 +265,6 @@ void node_advance(Node *node) {
 
     // Initially increment
     node_set_instruction_pointer(node, node->instructionPointer + 1);
-
-    // Pass over labels
-    while (node->instructionList[node->instructionPointer].operation == OPLBL) {
-        node_set_instruction_pointer(node, node->instructionPointer + 1);
-        if (node->instructionPointer > node->instructionCount) {
-            node_set_instruction_pointer(node, 0);
-        }
-    }
-
-    printf("IP: %d\n", node->instructionPointer);
 }
 
 void node_tick(Node *node) {
@@ -257,6 +272,15 @@ void node_tick(Node *node) {
     if (node->instructionPointer >= node->instructionCount) {
         node->instructionPointer = 0;
     }
+
+    // Pass over currently reading labels
+    while (node->instructionList[node->instructionPointer].operation == OPLBL) {
+        node_set_instruction_pointer(node, node->instructionPointer + 1);
+        if (node->instructionPointer > node->instructionCount) {
+            node_set_instruction_pointer(node, 0);
+        }
+    }
+
     Instruction toExecute = node->instructionList[node->instructionPointer];
     node_execute_instruction(node, toExecute);
     node_advance(node);

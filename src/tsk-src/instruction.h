@@ -98,4 +98,6 @@ DirectionalLocation opposite_of_directional(DirectionalLocation originalDirectio
 OPCode string_to_opcode(char* inputString);
 DirectionalLocation string_to_direction(char* inputString);
 
+bool opcode_is_jump_instruction(OPCode operation);
+
 #endif
