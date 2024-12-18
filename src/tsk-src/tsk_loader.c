@@ -21,7 +21,6 @@ Instruction* parse_tsk_line(char* line) {
         tskOperation->src.type = LABEL;
         tskOperation->src.value.label = malloc(MAX_LABEL_LEN);
         strcpy(tskOperation->src.value.label, token);
-        printf("'%s'\n", token);
         return tskOperation;
     }
 

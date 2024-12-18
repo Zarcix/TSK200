@@ -125,23 +125,39 @@ static void execute_instruction_math(Node *node, OPCode operation, Data amount) 
 
 static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
     // int here to detect for negative jumps
-    int newIP = 0;
+    int newIP = node->instructionPointer;
     switch (operation) {
         case JMP: {
             int labelIndex = node_search_for_label(node, label.value.label);
-            node->instructionPointer = labelIndex;
+            newIP = labelIndex;
             break;
         }
         case JEZ: {
+            if (node->ACC == 0) {
+                int labelIndex = node_search_for_label(node, label.value.label);
+                newIP = labelIndex;
+            }
             break;
         }
         case JNZ: {
+            if (node->ACC != 0) {
+                int labelIndex = node_search_for_label(node, label.value.label);
+                newIP = labelIndex;
+            }
             break;
         }
         case JGZ: {
+            if (node->ACC > 0) {
+                int labelIndex = node_search_for_label(node, label.value.label);
+                newIP = labelIndex;
+            }
             break;
         }
         case JLZ: {
+            if (node->ACC < 0) {
+                int labelIndex = node_search_for_label(node, label.value.label);
+                newIP = labelIndex;
+            }
             break;
         }
         case JRO: {
@@ -163,8 +179,8 @@ static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
         }
     }
 
-    // Check for underflows
-    if (newIP - 1 < 0) {
+    // Check for both under and overflows
+    if (newIP - 1 < 0 || newIP >= node->instructionCount) {
         newIP = 0;
     }
     node->instructionPointer = newIP - 1;
