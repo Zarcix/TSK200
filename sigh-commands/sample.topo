@@ -1,0 +1,6 @@
+#Below are the valid topology settings for a given node.
+#LEFT:NODENAME
+#RIGHT:NODENAME
+#UP:NODENAME
+#DOWN:NODENAME
+#OUTPUT:bool

@@ -1,4 +1,2 @@
-LEFT:nodeB
-#RIGHT:
-#UP:
-#DOWN:
+UP:input
+DOWN:out
