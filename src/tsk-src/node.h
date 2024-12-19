@@ -18,7 +18,10 @@ typedef struct NodeStruct {
     // Registers
     int ACC;
     int BAK;
+
+    // Output Handling
     bool isOutput;
+    long int outputCount;
 
     // Pipes
     struct NodeStruct *currentPipe[4];

@@ -232,8 +232,11 @@ void node_init(Node *node, bool isOutputNode) {
     // Init registers
     node->ACC = 0;
     node->BAK = 0;
-    node->isOutput = isOutputNode;
     node->LAST = NIL;
+
+    // Output
+    node->isOutput = isOutputNode;
+    node->outputCount = 0;
 
     // Init ports
     for (int i = 0; i < PIPE_COUNT; i++) {
@@ -281,6 +284,10 @@ void node_advance(Node *node) {
 
     // Initially increment
     node_set_instruction_pointer(node, node->instructionPointer + 1);
+    if (node->isOutput) {
+        printf("Output: %d\n", node->ACC);
+        node->outputCount++;
+    }
 }
 
 void node_tick(Node *node) {
@@ -326,6 +333,8 @@ ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
 
             // Get Data
             result.value = toRead->senderData[oppositeDirection];
+            toRead->isWaiting = false;
+            node->isWaiting = false;
 
             // Reset sender for all pipes
             for (int i = 0; i < AnyOrderCount; i++) {
@@ -386,6 +395,9 @@ void node_write(Node *node, DirectionalLocation dataDirection, int value) {
             }
             node->currentPipe[dataDirection] = toWrite;
             node->senderData[dataDirection] = value;
+            // Force increment since node is now waiting
+            node_advance(node);
+            node->isWaiting = true;
             break;
         }
         case ANY: {

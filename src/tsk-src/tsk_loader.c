@@ -14,8 +14,8 @@ Instruction* parse_tsk_line(char* line) {
     }
 
     Instruction* tskOperation = malloc(sizeof(Instruction));
-
-    if (strstr(line, ":")) {
+    char* smth = strstr(line, ":");
+    if (smth) {
         char* token = strtok(line, ":");
         token[strcspn(token, "\n")] = 0;
         tskOperation->operation = OPLBL;
@@ -132,8 +132,8 @@ void parse_tsk_topology(char* tskPath, char* currentNode, NodeMapIndex* nodeList
         }
 
         DirectionalLocation location = string_to_direction(locationToken);
-        if (!direction_is_node_direction(location)) {
-            printf("Location not a location, skipping rest of file\n");
+        if (!direction_is_node_direction(location) && strcmp(locationToken, "OUTPUT") != 0) {
+            printf("Location not a location nor output, skipping rest of file\n");
             return;
         }
 
@@ -152,33 +152,20 @@ void parse_tsk_topology(char* tskPath, char* currentNode, NodeMapIndex* nodeList
             printf("Current node is not valid\n");
             return;
         }
+
+        if (strcmp(locationToken, "OUTPUT") == 0) {
+            myNode->isOutput = true;
+            continue;
+        }
+
         Node *otherNode = get_node_from_node_list(nodeToken, nodeList, nodeListCount);
         if (NULL == otherNode) {
             printf("Other node is not valid\n");
             return;
         }
 
-        switch (location) {
-            case LEFT: {
-                myNode->senderPipes[RIGHT] = otherNode;
-                break;
-            }
-            case RIGHT: {
-                myNode->senderPipes[LEFT] = otherNode;
-                break;
-            }
-            case UP: {
-                myNode->senderPipes[DOWN] = otherNode;
-                break;
-            }
-            case DOWN: {
-                myNode->senderPipes[UP] = otherNode;
-                break;
-            }
-            default: {
-                break;
-            }
-        }
+        
+        myNode->senderPipes[location] = otherNode;
     }
 }
 
@@ -201,6 +188,16 @@ Node* parse_single_tsk_node(char* tskPath, char* tskNodeDef) {
 
     int instructionCounter = 0;
     while (NULL != fgets(tskLine, MAX_COMMAND_LEN, tskFile)) {
+        // Remove comments
+        char *ptr = strchr(tskLine, '#');
+        if (NULL != ptr) {
+            *ptr = '\0';
+        }
+        tskLine[strcspn(tskLine, "\n")] = 0;
+
+        if (0 == strcmp(tskLine, "")) {
+            continue;
+        }
         Instruction* createdInstruction = parse_tsk_line(tskLine);
         if (NULL != createdInstruction && instructionCounter < MAX_INSTRUCTIONS) {
             instructionList[instructionCounter] = *createdInstruction;
