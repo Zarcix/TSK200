@@ -6,23 +6,30 @@
 #include "./tsk-src/node.h"
 #include "./tsk-src/tsk_loader.h"
 
-const int MAX_ARGS = 2;
-int* parse_args(char **argv) {
+static char* COMMAND_PATH = "";
+const int PARSABLE_ARGS = 3;
+
+int* parse_args(int argc, char **argv) {
     // argList[0] = delay time
     // arglist[1] = max output
-    int* argList = malloc(MAX_ARGS * sizeof(int));
+    int* argList = malloc(PARSABLE_ARGS * sizeof(int));
     argList[0] = 0;
     argList[1] = -1;
 
     bool seenArgParam = false;
-    int argIndex = 1;
     int argType = 0;
 
-    while (NULL != argv[argIndex]) {
+    for (int argIndex = 1; argIndex < argc; ++argIndex) {
         char* argument = argv[argIndex];
-        argIndex++;
+
+        if (seenArgParam && argType == 2) {
+            // Parse Strings
+            COMMAND_PATH = argument;
+            continue;
+        }
 
         if (seenArgParam) {
+            // Parse Ints
             char *endCheck;
             int num = strtol(argument, &endCheck, 10);
 
@@ -40,6 +47,9 @@ int* parse_args(char **argv) {
         } else if (0 == strcmp(argument, "--max-outputs")) {
             seenArgParam = true;
             argType = 1;
+        } else if (0 == strcmp(argument, "--path")) {
+            seenArgParam = true;
+            argType = 2;
         }
     }
 
@@ -47,11 +57,11 @@ int* parse_args(char **argv) {
 }
 
 int main(int argc, char **argv) {
-    int *args = parse_args(argv);
+    int *args = parse_args(argc, argv);
     int tickDelay = args[0];
     int maxOutputs = args[1];
 
-    Node** nodeList = tsk_to_node("sigh-commands");
+    Node** nodeList = tsk_to_node(COMMAND_PATH);
     int nodeIndex = 0;
     if (NULL == nodeList[nodeIndex]) {
         return -1;
