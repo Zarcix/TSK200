@@ -183,7 +183,7 @@ static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
     if (newIP - 1 < 0 || newIP >= node->instructionCount) {
         newIP = 0;
     }
-    node->instructionPointer = newIP - 1;
+    node->instructionPointer = newIP;
 }
 
 /** Execution for register instructions
