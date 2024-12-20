@@ -13,7 +13,7 @@ int* parse_args(int argc, char **argv) {
     // argList[0] = delay time
     // arglist[1] = max output
     int* argList = malloc(PARSABLE_ARGS * sizeof(int));
-    argList[0] = 0;
+    argList[0] = -1;
     argList[1] = -1;
 
     bool seenArgParam = false;
@@ -25,6 +25,7 @@ int* parse_args(int argc, char **argv) {
         if (seenArgParam && argType == 2) {
             // Parse Strings
             COMMAND_PATH = argument;
+            seenArgParam = false;
             continue;
         }
 
@@ -76,7 +77,10 @@ int main(int argc, char **argv) {
             break;
         }
 
-        sleep(tickDelay);
+        if (tickDelay > 0) {
+            sleep(tickDelay);
+        }
+
         node_tick(currentNode);
         nodeIndex++;
     }
