@@ -47,11 +47,11 @@ Defines the topology for the current node.
 - `DOWN:nodeName` A node directly below the current node
 - `OUTPUT:boolean` A node that is an output node. The ACC register will be printed to stdout every time ACC is updated.
 
-View [sample.topo](./sigh-commands/samples/sample.topo) for more information.
+View [sample.topo](./sample-commands/sample.topo) for more information.
 
 ### TSK Node
 
-View [sample.tsk](./sigh-commands/samples/sample.tsk) for more information.
+View [sample.tsk](./sample-commands/sample.tsk) for more information.
 
 ## License
 
