@@ -1,7 +1,12 @@
 CC=clang
-CFLAGS=-std=c23 -pedantic -Wall -Werror -Wextra -pedantic-errors -g
+CFLAGS=-std=c23 -pedantic -Wall -Werror -Wextra -pedantic-errors
 
-all: tsk
+debug: CFLAGS += -g
+debug: CFLAGS += -DDEBUG
+debug: tsk
+
+release: CFLAGS += -O3 -g
+release: tsk
 
 prebuild:
 	mkdir -p build/
