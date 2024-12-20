@@ -25,13 +25,11 @@ static int node_get_data(Node *node, Data dataValue) {
             break;
         }
         case LOCATION: {
-            ReadResult srcData = node_read(node, dataValue.value.nodeValue);
-            if (srcData.isWaiting) {
-                node->isWaiting = true;
+            int srcData = node_read(node, dataValue.value.nodeValue);
+            if (node->isWaiting) {
                 break;
             }
-            node->isWaiting = false;
-            val = srcData.value;
+            val = srcData;
             break;
         }
         default: {
@@ -313,67 +311,57 @@ void node_tick(Node *node) {
  * @param node: The node that's reading data
  * @param dataDirection: The direction to read data from
  */
-ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
-    ReadResult result;
-    result.isWaiting = false;
-    DirectionalLocation oppositeDirection = opposite_of_directional(dataDirection);
+int node_read(Node *node, DirectionalLocation dataDirection) {
+    // Initially assume there is no data
+    node->isWaiting = true;
 
+    int data = 0;
+    DirectionalLocation oppositeDirection = opposite_of_directional(dataDirection);
     switch (dataDirection) {
         case LEFT: case RIGHT: case UP: case DOWN: {
             Node *toRead = node->senderPipes[dataDirection];
-            if (toRead == NULL) {
-                result.isWaiting = true;
+            if (NULL == toRead || NULL == toRead->currentPipe[oppositeDirection]) {
+                // Reading a null node causes it to read forever
                 break;
             }
 
-            if (toRead->currentPipe[oppositeDirection] == NULL) {
-                result.isWaiting = true;
-                break;
-            }
-
-            // Get Data
-            result.value = toRead->senderData[oppositeDirection];
-            toRead->isWaiting = false;
+            // Node no longer waits on a successful read
+            data = toRead->senderData[oppositeDirection];
             node->isWaiting = false;
 
-            // Reset sender for all pipes
+            // Reset sender
+            toRead->isWaiting = false;
             for (int i = 0; i < AnyOrderCount; i++) {
                 toRead->currentPipe[i] = NULL;
-                toRead->senderData[i] = 0;
             }
-
+            node_advance(toRead);
             break;
-        }
-        case ANY: {
-            // Read nodes in order.
+        } case ANY: {
             for (int i = 0; i < AnyOrderCount; i++) {
-                result = node_read(node, AnyOrder[i]);
-                if (!result.isWaiting) {
-                    node->LAST = AnyOrder[i];
-                    return result;
+                int possibleRes = node_read(node, AnyOrder[i]);
+                // Only accept the reading if the node is no longer reading
+                if (!node->isWaiting) {
+                    data = possibleRes;
+                    break;
                 }
             }
-            result.isWaiting = true;
             break;
-        }
-        case ACC: {
-            result.value = node->ACC;
+        } case ACC: {
+            node->isWaiting = false;
+            data = node->ACC;
             break;
-        }
-        case LAST: {
-            result = node_read(node, node->LAST);
+        } case LAST: {
+            data = node_read(node, node->LAST);
             break;
-        }
-        case NIL: {
-            result.value = 0;
+        } case NIL: {
+            node->isWaiting = false;
+            data = 0;
             break;
-        }
-        default: {
+        } default: {
             break;
         }
     }
-
-    return result;
+    return data;
 }
 
 /** Write data into a node's pipe
@@ -382,39 +370,38 @@ ReadResult node_read(Node *node, DirectionalLocation dataDirection) {
  * @param value: The data to write
  */
 void node_write(Node *node, DirectionalLocation dataDirection, int value) {
-    for (int i = 0; i < AnyOrderCount; i++) {
-        if (node->currentPipe[i] != NULL) {
-            return;
-        }
+    // If already waiting, wait until another node reads data
+    if (node->isWaiting) {
+        return;
     }
+
+    // By default start waiting. Waiting will be let go through another node's reading
+    node->isWaiting = true;
+
     switch (dataDirection) {
         case LEFT: case RIGHT: case UP: case DOWN: {
             Node *toWrite = node->senderPipes[dataDirection];
             if (toWrite == NULL) {
+                // Writing to an invalid node causes the node to wait forever
                 break;
             }
             node->currentPipe[dataDirection] = toWrite;
             node->senderData[dataDirection] = value;
-            // Force increment since node is now waiting
-            node_advance(node);
-            node->isWaiting = true;
             break;
-        }
-        case ANY: {
+        } case ANY: {
             for (int i = 0; i < AnyOrderCount; i++) {
                 node_write(node, AnyOrder[i], value);
             }
             break;
-        }
-        case ACC: {
+        } case ACC: {
+            // ACC does not need any waiting to write to
+            node->isWaiting = false;
             node->ACC = value;
             break;
-        }
-        case LAST: {
+        } case LAST: {
             node_write(node, node->LAST, value);
             break;
-        }
-        case NIL: default: {
+        } case NIL: default: {
             break;
         }
     }

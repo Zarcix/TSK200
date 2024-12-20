@@ -36,16 +36,6 @@ typedef struct NodeStruct {
     char *errorMessage;
 } Node;
 
-/**
- * Represents a result from a read.
- * 
- * @param isWaiting: Set to true if the value is not ready to be read
- * @param value: Value read
- */
-typedef struct {
-    bool isWaiting;
-    int value;
-} ReadResult;
 
 void node_init(Node *node, bool isOutputNode);
 
@@ -53,7 +43,7 @@ void node_execute_instruction(Node *node, Instruction input);
 void node_advance(Node *node);
 void node_tick(Node *node);
 
-ReadResult node_read(Node *node, DirectionalLocation dataDirection);
+int node_read(Node *node, DirectionalLocation dataDirection);
 void node_write(Node *node, DirectionalLocation dataDirection, int value);
 
 void node_cleanup(Node *node);
