@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-std=c23 -pedantic -Wall -pedantic-errors -g
+CFLAGS=-std=c23 -pedantic -Wall -Werror -Wextra -pedantic-errors -g
 
 all: tsk
 
