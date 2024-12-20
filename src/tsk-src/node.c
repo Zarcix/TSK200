@@ -10,7 +10,7 @@
 /* Node Helper Functions */
 
 static void node_set_instruction_pointer(Node *node, int newPointer) {
-    if (newPointer >= node->instructionCount || newPointer < 0) {
+    if (newPointer >= (long)node->instructionCount || newPointer < 0) {
         newPointer = 0;
     }
 
@@ -42,7 +42,7 @@ static int node_get_data(Node *node, Data dataValue) {
 static int node_search_for_label(Node *node, char* labelName) {
     // If label can't be found, just don't jump lol
     int labelIndex = node->instructionPointer;
-    for (int i = 0; i < node->instructionCount; i++) {
+    for (int i = 0; i < (long)node->instructionCount; i++) {
         if (node->instructionList[i].operation != OPLBL) {
             continue;
         }
@@ -178,7 +178,7 @@ static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
     }
 
     // Check for both under and overflows
-    if (newIP - 1 < 0 || newIP >= node->instructionCount) {
+    if (newIP - 1 < 0 || newIP >= (long)node->instructionCount) {
         newIP = 0;
     }
     node->instructionPointer = newIP;

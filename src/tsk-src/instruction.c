@@ -29,7 +29,7 @@ DirectionalLocation opposite_of_directional(DirectionalLocation originalDirectio
 }
 
 bool opcode_is_jump_instruction(OPCode operation) {
-    unsigned int instructionCount = 6;
+    int instructionCount = 6;
     const OPCode JumpInstructionList[] = {
         JEZ,
         JMP,

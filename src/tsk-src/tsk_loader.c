@@ -213,7 +213,6 @@ Node* parse_single_tsk_node(char* tskPath, char* tskNodeDef) {
 }
 
 Node** read_tsk_nodes(char* tskPath) {
-    printf("-- Finding Nodes --\n");
     DIR* tskD;
     struct dirent *tskDir;
     tskD = opendir(tskPath);
@@ -227,7 +226,6 @@ Node** read_tsk_nodes(char* tskPath) {
     // Count the amount of tsk nodes
     while (NULL != (tskDir = readdir(tskD))) {
         if (NULL != strstr(tskDir->d_name, ".tsk")) {
-            printf("Node File Found: %s\n", tskDir->d_name);
             tskCount++;
         }
     }
