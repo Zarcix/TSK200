@@ -53,6 +53,9 @@ int main(int argc, char **argv) {
 
     Node** nodeList = tsk_to_node("sigh-commands");
     int nodeIndex = 0;
+    if (NULL == nodeList[nodeIndex]) {
+        return -1;
+    }
     while (true) {
         if (NULL == nodeList[nodeIndex]) {
             nodeIndex = 0;
