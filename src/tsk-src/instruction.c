@@ -1,7 +1,5 @@
-#include <stdio.h>
 #include <string.h>
 #include <dirent.h>
-#include <stdlib.h>
 #include <stdbool.h>
 
 #include "instruction.h"
@@ -29,7 +27,7 @@ DirectionalLocation opposite_of_directional(DirectionalLocation originalDirectio
 }
 
 bool opcode_is_jump_instruction(OPCode operation) {
-    int instructionCount = 6;
+    int JumpInstructionCount = 6;
     const OPCode JumpInstructionList[] = {
         JEZ,
         JMP,
@@ -39,7 +37,7 @@ bool opcode_is_jump_instruction(OPCode operation) {
         JRO
     };
 
-    for (int i = 0; i < instructionCount; i++) {
+    for (int i = 0; i < JumpInstructionCount; i++) {
         if (operation == JumpInstructionList[i]) {
             return true;
         }
@@ -49,6 +47,7 @@ bool opcode_is_jump_instruction(OPCode operation) {
 }
 
 OPCode string_to_opcode(char* inputString) {
+    const int OPCodeCount = 14;
     const char *OPCodeString[] = {
         "SUB",
         "ADD",
@@ -69,12 +68,10 @@ OPCode string_to_opcode(char* inputString) {
         "OPLBL"
     };
 
-    int op_code_num = 0;
-    while (NULL != OPCodeString[op_code_num]) {
-        if (0 == strcmp(OPCodeString[op_code_num], inputString)) {
-            return op_code_num;
+    for (int i = 0; i < OPCodeCount; i++) {
+        if (0 == strcmp(OPCodeString[i], inputString)) {
+            return i;
         }
-        op_code_num++;
     }
 
     return NOP;
@@ -82,6 +79,7 @@ OPCode string_to_opcode(char* inputString) {
 
 
 DirectionalLocation string_to_direction(char* inputString) {
+    const int LocationCount = 8;
     const char *LocationStrings[] = {
         "LEFT",
         "RIGHT",
@@ -95,12 +93,10 @@ DirectionalLocation string_to_direction(char* inputString) {
         "ACC"
     };
 
-    int op_code_num = 0;
-    while (NULL != LocationStrings[op_code_num]) {
-        if (0 == strcmp(LocationStrings[op_code_num], inputString)) {
-            return op_code_num;
+    for (int i = 0; i < LocationCount; i++) {
+        if (0 == strcmp(LocationStrings[i], inputString)) {
+            return i;
         }
-        op_code_num++;
     }
 
     return NIL;

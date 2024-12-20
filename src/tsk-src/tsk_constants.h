@@ -1,9 +1,9 @@
 #ifndef TSK_CONSTANTS
 #define TSK_CONSTANTS
 
-#define MAX_INSTRUCTIONS 15
+#define MAX_INSTRUCTIONS 256
 #define MAX_COMMAND_LEN 256
-#define MAX_LABEL_LEN 50
+#define MAX_LABEL_LEN 256
 #define PIPE_COUNT 4
 
 #endif
