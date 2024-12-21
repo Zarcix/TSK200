@@ -24,7 +24,7 @@ typedef struct NodeStruct {
     long int outputCount;
 
     // Pipes
-    struct NodeStruct *currentPipe[4];
+    bool currentPipe[4];
     struct NodeStruct *senderPipes[4];
     int senderData[4];
 
