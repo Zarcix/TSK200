@@ -26,7 +26,7 @@ static int node_get_data(Node *node, Data dataValue) {
         }
         case LOCATION: {
             int srcData = node_read(node, dataValue.value.nodeValue);
-            if (node->isWaiting) {
+            if (RUN != node->state) {
                 break;
             }
             val = srcData;
@@ -77,9 +77,12 @@ static void execute_instruction_mov(Node *node, Data src, Data dest) {
         return;
     }
 
-    // MOV Parsing
+    // If writing, don't overwrite the current write
+    if (WRITE == node->state) {
+        return;
+    }
     int srcVal = node_get_data(node, src);
-    if (node->isWaiting) {
+    if (RUN != node->state) {
         return;
     }
 
@@ -108,7 +111,7 @@ static void execute_instruction_math(Node *node, OPCode operation, Data amount) 
                 break;
             }
             int dataVal = node_get_data(node, amount);
-            if (node->isWaiting) {
+            if (RUN != node->state) {
                 return;
             }
             totalAmount = dataVal * mathMultipler;
@@ -165,7 +168,7 @@ static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
             }
 
             int jumpOffset = node_get_data(node, label);
-            if (node->isWaiting) {
+            if (RUN != node->state) {
                 return;
             }
 
@@ -225,7 +228,7 @@ void node_init(Node *node, bool isOutputNode) {
     node->instructionCount = 0;
     node->instructionPointer = 0;
     node->instructionList = calloc(MAX_INSTRUCTIONS, sizeof(Instruction));
-    node->isWaiting = false;
+    node->state = RUN;
 
     // Init registers
     node->ACC = 0;
@@ -276,7 +279,7 @@ void node_execute_instruction(Node *node, Instruction input) {
  * @param node: The node to step an instruction
  */
 void node_advance(Node *node) {
-    if (node->isWaiting) {
+    if (RUN != node->state) {
         return;
     }
 
@@ -312,8 +315,7 @@ void node_tick(Node *node) {
  * @param dataDirection: The direction to read data from
  */
 int node_read(Node *node, DirectionalLocation dataDirection) {
-    // Initially assume there is no data
-    node->isWaiting = true;
+    node->state = READ;
 
     int data = 0;
     DirectionalLocation oppositeDirection = opposite_of_directional(dataDirection);
@@ -327,10 +329,10 @@ int node_read(Node *node, DirectionalLocation dataDirection) {
 
             // Node no longer waits on a successful read
             data = toRead->senderData[oppositeDirection];
-            node->isWaiting = false;
+            node->state = RUN;
 
             // Reset sender
-            toRead->isWaiting = false;
+            toRead->state = RUN;
             for (int i = 0; i < AnyOrderCount; i++) {
                 toRead->currentPipe[i] = false;
                 toRead->senderData[i] = 0;
@@ -341,21 +343,21 @@ int node_read(Node *node, DirectionalLocation dataDirection) {
             for (int i = 0; i < AnyOrderCount; i++) {
                 int possibleRes = node_read(node, AnyOrder[i]);
                 // Only accept the reading if the node is no longer reading
-                if (!node->isWaiting) {
+                if (READ != node->state) {
                     data = possibleRes;
                     break;
                 }
             }
             break;
         } case ACC: {
-            node->isWaiting = false;
+            node->state = RUN;
             data = node->ACC;
             break;
         } case LAST: {
             data = node_read(node, node->LAST);
             break;
         } case NIL: {
-            node->isWaiting = false;
+            node->state = RUN;
             data = 0;
             break;
         } default: {
@@ -372,12 +374,12 @@ int node_read(Node *node, DirectionalLocation dataDirection) {
  */
 void node_write(Node *node, DirectionalLocation dataDirection, int value) {
     // If already waiting, wait until another node reads data
-    if (node->isWaiting) {
+    if (WRITE == node->state) {
         return;
     }
 
     // By default start waiting. Waiting will be let go through another node's reading
-    node->isWaiting = true;
+    node->state = WRITE;
 
     switch (dataDirection) {
         case LEFT: case RIGHT: case UP: case DOWN: {
@@ -396,14 +398,14 @@ void node_write(Node *node, DirectionalLocation dataDirection, int value) {
             break;
         } case ACC: {
             // ACC does not need any waiting to write to
-            node->isWaiting = false;
+            node->state = RUN;
             node->ACC = value;
             break;
         } case LAST: {
             node_write(node, node->LAST, value);
             break;
         } case NIL: {
-            node->isWaiting = false;
+            node->state = RUN;
             break;
         } default: {
             break;
@@ -455,5 +457,5 @@ void node_debug_print(Node *node, char* nodeName) {
     printf("\n");
 
     // Others
-    printf("\tWaiting: %d\n", node->isWaiting);
+    printf("\tWaiting: %u\n", node->state);
 }

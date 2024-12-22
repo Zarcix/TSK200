@@ -5,6 +5,12 @@
 
 #include "instruction.h"
 
+typedef enum {
+    RUN,
+    WRITE,
+    READ
+} NodeState;
+
 /**
  * Represents a node
  */
@@ -13,7 +19,7 @@ typedef struct NodeStruct {
     Instruction *instructionList;
     unsigned int instructionCount;
     unsigned int instructionPointer;
-    bool isWaiting;
+    NodeState state;
 
     // Registers
     int ACC;
