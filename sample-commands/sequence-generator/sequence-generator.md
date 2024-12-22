@@ -11,3 +11,7 @@
 - A sequence means a single line of processing or a "test case" that has been passed
 - Values are compared between inA and inB
 - Maximum amount of outputs: 39
+
+## Expected Output
+
+For expected output, check [out_expected](./out_expected.txt)

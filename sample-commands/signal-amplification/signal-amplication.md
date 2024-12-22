@@ -11,4 +11,8 @@
 - Input node is named `input`.
 - Output node is named `out`.
 - Node that does the doubling is named `nodeA`.
-- Maximum amount of outputs: **40**
+- Maximum amount of outputs: **42**
+
+## Expected Output
+
+For expected output, check [OUT_expected](./OUT_expected.txt)
