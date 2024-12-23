@@ -9,6 +9,7 @@ This is a C program that implements the TIS-100 instruction set.
 - [ ] TSK nodes running on their own threads.
 - [ ] A stack module
 - [ ] Pipes that connect all nodes together
+- [ ] Multi node output support
 
 ## Building
 
