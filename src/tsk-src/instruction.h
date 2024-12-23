@@ -1,5 +1,5 @@
-#ifndef OP_CONSTANTS
-#define OP_CONSTANTS
+#ifndef INSTRUCTION
+#define INSTRUCTION
 
 /**
  * Operation codes

@@ -8,6 +8,8 @@
 #include "./instruction.h"
 #include "./tsk_loader.h"
 
+/* Helper Functions */
+
 Instruction* parse_tsk_line(char* line) {
     if (NULL == line) {
         return NULL;
@@ -91,18 +93,18 @@ Instruction* parse_tsk_line(char* line) {
     return tskOperation;
 }
 
-Node* get_node_from_node_list(char* nodeToFind, NodeMapIndex* nodeList, int nodeListCount) {
+Node* get_node_from_node_list(char* nodeToFind, int nodeListCount) {
     Node* foundNode = NULL;
     for (int i = 0; i < nodeListCount; i++) {
-        if (strcmp(nodeList[i].name, nodeToFind) == 0) {
-            foundNode = nodeList[i].node;
+        if (strcmp(node_mappings[i].name, nodeToFind) == 0) {
+            foundNode = node_mappings[i].node;
             break;
         }
     }
     return foundNode;
 }
 
-void parse_tsk_topology(char* tskPath, char* currentNode, NodeMapIndex* nodeList, int nodeListCount) {
+void parse_tsk_topology(char* tskPath, char* currentNode, int nodeListCount) {
     char newPath[MAX_COMMAND_LEN] = {};
     strcat(newPath, tskPath);
     strcat(newPath, "/");
@@ -147,7 +149,7 @@ void parse_tsk_topology(char* tskPath, char* currentNode, NodeMapIndex* nodeList
             *ptr = '\0';
         }
 
-        Node *myNode = get_node_from_node_list(currentNode, nodeList, nodeListCount);
+        Node *myNode = get_node_from_node_list(currentNode, nodeListCount);
         if (NULL == myNode) {
             printf("Current node is not valid\n");
             return;
@@ -158,7 +160,7 @@ void parse_tsk_topology(char* tskPath, char* currentNode, NodeMapIndex* nodeList
             continue;
         }
 
-        Node *otherNode = get_node_from_node_list(nodeToken, nodeList, nodeListCount);
+        Node *otherNode = get_node_from_node_list(nodeToken, nodeListCount);
         if (NULL == otherNode) {
             printf("Other node is not valid\n");
             return;
@@ -231,7 +233,9 @@ Node** read_tsk_nodes(char* tskPath) {
     }
 
     Node **nodeList = calloc(tskCount, sizeof(Node));
-    NodeMapIndex nodeIndexList[tskCount] = {};
+
+    node_mappings = malloc(tskCount * sizeof(NodeMapIndex));
+    node_mapping_count = tskCount;
     rewinddir(tskD);
     int i = 0;
 
@@ -246,9 +250,9 @@ Node** read_tsk_nodes(char* tskPath) {
                 *ptr = '\0';
             }
 
-            nodeIndexList[i].name = malloc(256 * sizeof(char));
-            strcpy(nodeIndexList[i].name, tskDir->d_name);
-            nodeIndexList[i].node = newNode;
+            node_mappings[i].name = malloc(256 * sizeof(char));
+            strcpy(node_mappings[i].name, tskDir->d_name);
+            node_mappings[i].node = newNode;
 
             i++;
         }
@@ -259,20 +263,27 @@ Node** read_tsk_nodes(char* tskPath) {
     // Connect nodes together based on topology
     while (NULL != (tskDir = readdir(tskD))) {
         if (NULL != strstr(tskDir->d_name, ".topo")) {
-            parse_tsk_topology(tskPath, tskDir->d_name, nodeIndexList, tskCount);
+            parse_tsk_topology(tskPath, tskDir->d_name, tskCount);
         }
-    }
-
-    // Cleanup
-    for (int i = 0; i < tskCount; i++) {
-        free(nodeIndexList[i].name);
     }
 
     return nodeList;
 }
 
+/* Public Functions */
+
 Node** tsk_to_node(char* tskPath) {
     Node **nodes = read_tsk_nodes(tskPath);
 
     return nodes;
+}
+
+char* tsk_node_name(Node* nodeToSearch) {
+    char *nodeName = NULL;
+    for (int i = 0; i < node_mapping_count; i++) {
+        if (node_mappings[i].node == nodeToSearch) {
+            nodeName = node_mappings[i].name;
+        }
+    }
+    return nodeName;
 }
