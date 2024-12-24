@@ -6,6 +6,7 @@
 #include "./tsk-src/node.h"
 #include "./tsk-src/tsk_loader.h"
 
+static bool PROGRAM_EXIT = false;
 static char* COMMAND_PATH = "";
 const int PARSABLE_ARGS = 3;
 
@@ -68,13 +69,17 @@ int main(int argc, char **argv) {
         return -1;
     }
     while (true) {
+        if (PROGRAM_EXIT && nodeIndex == 0) {
+            // Ensure that all nodes tick properly before stopping program
+            break;
+        }
         if (NULL == nodeList[nodeIndex]) {
             nodeIndex = 0;
         }
         Node *currentNode = nodeList[nodeIndex];
 
         if (currentNode->isOutput && maxOutputs > 0 && currentNode->outputCount >= maxOutputs) {
-            break;
+            PROGRAM_EXIT = true;
         }
 
         if (tickDelay > 0) {

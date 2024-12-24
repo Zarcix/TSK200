@@ -278,8 +278,8 @@ Node** tsk_to_node(char* tskPath) {
     return nodes;
 }
 
-char* tsk_node_name(Node* nodeToSearch) {
-    char *nodeName = NULL;
+char* tsk_get_node_name(Node* nodeToSearch) {
+    char *nodeName = "\0";
     for (int i = 0; i < node_mapping_count; i++) {
         if (node_mappings[i].node == nodeToSearch) {
             nodeName = node_mappings[i].name;
