@@ -69,13 +69,15 @@ int main(int argc, char **argv) {
         return -1;
     }
     while (true) {
+        if (NULL == nodeList[nodeIndex]) {
+            nodeIndex = 0;
+        }
+
         if (PROGRAM_EXIT && nodeIndex == 0) {
             // Ensure that all nodes tick properly before stopping program
             break;
         }
-        if (NULL == nodeList[nodeIndex]) {
-            nodeIndex = 0;
-        }
+
         Node *currentNode = nodeList[nodeIndex];
 
         if (currentNode->isOutput && maxOutputs > 0 && currentNode->outputCount >= maxOutputs) {

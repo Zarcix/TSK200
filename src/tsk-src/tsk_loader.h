@@ -14,4 +14,5 @@ static int node_mapping_count = 0;
 
 Node** tsk_to_node(char* tskPath);
 char* tsk_get_node_name(Node* nodeToSearch);
+void tsk_save_output(Node* outNode);
 #endif

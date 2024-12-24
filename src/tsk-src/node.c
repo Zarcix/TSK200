@@ -3,9 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "node.h"
-#include "instruction.h"
-#include "tsk_constants.h"
+#include "./node.h"
+#include "./instruction.h"
+#include "./tsk_constants.h"
+#include "./tsk_loader.h"
 
 /* Node Helper Functions */
 
@@ -286,7 +287,7 @@ void node_advance(Node *node) {
     // Initially increment
     node_set_instruction_pointer(node, node->instructionPointer + 1);
     if (node->isOutput) {
-        printf("Output: %d\n", node->ACC);
+        tsk_save_output(node);
         node->outputCount++;
     }
 }

@@ -287,3 +287,22 @@ char* tsk_get_node_name(Node* nodeToSearch) {
     }
     return nodeName;
 }
+
+void tsk_save_output(Node* outNode) {
+    if (NULL == outNode) {
+        printf("Invalid Node\n");
+        return;
+    }
+    char* nodeName = strdup(tsk_get_node_name(outNode));
+    strcat(nodeName, ".log");
+    FILE *tskFile = fopen(nodeName, "a");
+    if (NULL == tskFile) {
+        printf("Could not open: %s\n.", nodeName);
+        return;
+    }
+
+    fprintf(tskFile, "%d\n", outNode->ACC);
+    fclose(tskFile);
+
+    free(nodeName);
+}
