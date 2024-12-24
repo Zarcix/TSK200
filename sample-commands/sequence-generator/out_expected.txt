@@ -1,39 +1,39 @@
-Output: 46
-Output: 71
-Output: 0
-Output: 29
-Output: 71
-Output: 0
-Output: 66
-Output: 90
-Output: 0
-Output: 21
-Output: 67
-Output: 0
-Output: 79
-Output: 79
-Output: 0
-Output: 23
-Output: 84
-Output: 0
-Output: 62
-Output: 78
-Output: 0
-Output: 23
-Output: 27
-Output: 0
-Output: 36
-Output: 60
-Output: 0
-Output: 45
-Output: 96
-Output: 0
-Output: 12
-Output: 67
-Output: 0
-Output: 42
-Output: 97
-Output: 0
-Output: 47
-Output: 64
-Output: 0
+46
+71
+0
+29
+71
+0
+66
+90
+0
+21
+67
+0
+79
+79
+0
+23
+84
+0
+62
+78
+0
+23
+27
+0
+36
+60
+0
+45
+96
+0
+12
+67
+0
+42
+97
+0
+47
+64
+0
