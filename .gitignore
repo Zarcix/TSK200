@@ -51,5 +51,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Application Name
+# Application Files
+*.log
 tsk
