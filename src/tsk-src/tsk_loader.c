@@ -162,7 +162,7 @@ void parse_tsk_topology(char* tskPath, char* currentNode, int nodeListCount) {
 
         Node *otherNode = get_node_from_node_list(nodeToken, nodeListCount);
         if (NULL == otherNode) {
-            printf("Other node is not valid\n");
+            printf("Other node is not valid: %s\n", nodeToken);
             return;
         }
 

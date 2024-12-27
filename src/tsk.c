@@ -73,15 +73,15 @@ int main(int argc, char **argv) {
             nodeIndex = 0;
         }
 
+        Node *currentNode = nodeList[nodeIndex];
+
+        if (currentNode->isOutput && maxOutputs > 0 && currentNode->outputCount >= maxOutputs - 1) {
+            PROGRAM_EXIT = true;
+        }
+
         if (PROGRAM_EXIT && nodeIndex == 0) {
             // Ensure that all nodes tick properly before stopping program
             break;
-        }
-
-        Node *currentNode = nodeList[nodeIndex];
-
-        if (currentNode->isOutput && maxOutputs > 0 && currentNode->outputCount >= maxOutputs) {
-            PROGRAM_EXIT = true;
         }
 
         if (tickDelay > 0) {
@@ -89,6 +89,8 @@ int main(int argc, char **argv) {
         }
 
         node_tick(currentNode);
+
+
         nodeIndex++;
     }
 }
