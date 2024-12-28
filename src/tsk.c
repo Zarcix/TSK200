@@ -2,11 +2,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h> 
 
 #include "./tsk-src/node.h"
 #include "./tsk-src/tsk_loader.h"
 
+static Node** NodeList; 
+static pthread_mutex_t NodeLock;
+
 static bool PROGRAM_EXIT = false;
+static int *ARGS;
 static char* COMMAND_PATH = "";
 const int PARSABLE_ARGS = 3;
 
@@ -58,30 +63,24 @@ int* parse_args(int argc, char **argv) {
     return argList;
 }
 
-int main(int argc, char **argv) {
-    int *args = parse_args(argc, argv);
-    int tickDelay = args[0];
-    int maxOutputs = args[1];
+void* run_tsk(void *param) {
+    int tickDelay = ARGS[0];
+    int maxOutputs = ARGS[1];
 
-    Node** nodeList = tsk_to_node(COMMAND_PATH);
-    int nodeIndex = 0;
-    if (NULL == nodeList[nodeIndex]) {
-        return -1;
+    int tskIndex = *(int*)param;
+    Node *currentNode = NodeList[tskIndex];
+
+    if (NULL == currentNode) {
+        return NULL;
     }
-    while (true) {
-        if (NULL == nodeList[nodeIndex]) {
-            nodeIndex = 0;
-        }
 
-        Node *currentNode = nodeList[nodeIndex];
+    while (true) {
+        if (PROGRAM_EXIT) {
+            break;
+        }
 
         if (currentNode->isOutput && maxOutputs > 0 && currentNode->outputCount >= maxOutputs - 1) {
             PROGRAM_EXIT = true;
-        }
-
-        if (PROGRAM_EXIT && nodeIndex == 0) {
-            // Ensure that all nodes tick properly before stopping program
-            break;
         }
 
         if (tickDelay > 0) {
@@ -89,8 +88,42 @@ int main(int argc, char **argv) {
         }
 
         node_tick(currentNode);
-
-
-        nodeIndex++;
     }
+
+    return NULL;
+}
+
+int main(int argc, char **argv) {
+    ARGS = parse_args(argc, argv);
+
+    Node** nodeList = tsk_to_node(COMMAND_PATH);
+    int nodeIndex = 0;
+    if (NULL == nodeList[nodeIndex]) {
+        return -1;
+    }
+
+    NodeList = nodeList;
+    if (pthread_mutex_init(&NodeLock, NULL) != 0) {
+        printf("Mutex initialization failed. Exiting\n");
+        return -1;
+    }
+
+    int nodeCount = 0;
+    while (NULL != NodeList[nodeCount]) {
+        nodeCount++;
+    }
+
+    pthread_t threadList[nodeCount];
+
+    for (int i = 0; i < nodeCount; i++) {
+        int *arg = malloc(sizeof(*arg));
+        *arg = i;
+        pthread_create(&(threadList[i]), NULL, &run_tsk, arg);
+    }
+
+    for (int i = 0; i < nodeCount; i++) {
+        pthread_join(threadList[i], NULL);
+    }
+
+    pthread_mutex_destroy(&NodeLock);
 }
