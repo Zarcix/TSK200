@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
 
         Node *currentNode = nodeList[nodeIndex];
 
-        if (OUTPUT == currentNode->type && maxOutputs > 0 && currentNode->outputCount >= maxOutputs) {
+        if (OUTPUT == currentNode->type && maxOutputs > 0 && currentNode->typeData.outputCount >= maxOutputs) {
             PROGRAM_EXIT = true;
         }
 

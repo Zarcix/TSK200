@@ -2,16 +2,8 @@
 
 #include "./linkedlist.h"
 
-LinkedList* init_linked_list(int value) {
+LinkedList* init_linked_list() {
     LinkedList *toReturn = malloc(sizeof(LinkedList));
-    
-    LinkedNode *newNode = malloc(sizeof(LinkedNode));
-    newNode->nodeValue = value;
-    newNode->nextNode = NULL;
-
-    toReturn->front = newNode;
-    toReturn->back = newNode;
-
     return toReturn;
 }
 
@@ -35,13 +27,14 @@ void append_value(LinkedList *list, int value) {
     list->front = newNode;
 }
 
-int pop_value(LinkedList *list) {
+LinkedNode* pop_value(LinkedList *list) {
     LinkedNode *frontNode = list->front;
+
+    if (NULL == frontNode) {
+        return NULL;
+    }
 
     list->front = frontNode->nextNode;
 
-    int nodeValue = frontNode->nodeValue;
-    free(frontNode);
-
-    return nodeValue;
+    return frontNode;
 }

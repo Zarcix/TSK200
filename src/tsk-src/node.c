@@ -7,6 +7,7 @@
 #include "./instruction.h"
 #include "./tsk_constants.h"
 #include "./tsk_loader.h"
+#include "utils/linkedlist.h"
 
 /* Node Helper Functions */
 
@@ -238,7 +239,21 @@ void node_init(Node *node, NodeType nodeType) {
 
     // Output
     node->type = nodeType;
-    node->outputCount = 0;
+
+    switch (nodeType) {
+        case OUTPUT: {
+            node->typeData.outputCount = 0;
+            break;
+        }
+        case STACK: {
+            LinkedList* stack = init_linked_list();
+            node->typeData.stack = stack;
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 
     // Init ports
     for (int i = 0; i < PIPE_COUNT; i++) {
@@ -288,7 +303,7 @@ void node_advance(Node *node) {
     node_set_instruction_pointer(node, node->instructionPointer + 1);
     if (OUTPUT == node->type) {
         tsk_save_output(node);
-        node->outputCount++;
+        node->typeData.outputCount++;
     }
 }
 

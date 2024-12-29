@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "instruction.h"
+#include "./utils/linkedlist.h"
 
 typedef enum {
     RUN,
@@ -16,6 +17,11 @@ typedef enum {
     STACK,
     OUTPUT,
 } NodeType;
+
+typedef union {
+    long int outputCount;
+    LinkedList *stack;
+} NodeData;
 
 /**
  * Represents a node
@@ -31,9 +37,9 @@ typedef struct NodeStruct {
     int ACC;
     int BAK;
 
-    // Output Handling
+    // Node Types
     NodeType type;
-    long int outputCount;
+    NodeData typeData;
 
     // Pipes
     bool currentPipe[4];
