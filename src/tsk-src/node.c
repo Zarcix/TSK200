@@ -224,7 +224,7 @@ static void execute_instruction_register(Node *node, OPCode operation) {
  * @param node: The node to initialize
  * @param isOutputNode: Signifies if the node is an output node
  */
-void node_init(Node *node, bool isOutputNode) {
+void node_init(Node *node, NodeType nodeType) {
     // Init instructions
     node->instructionCount = 0;
     node->instructionPointer = 0;
@@ -237,7 +237,7 @@ void node_init(Node *node, bool isOutputNode) {
     node->LAST = NIL;
 
     // Output
-    node->isOutput = isOutputNode;
+    node->type = nodeType;
     node->outputCount = 0;
 
     // Init ports
@@ -286,7 +286,7 @@ void node_advance(Node *node) {
 
     // Initially increment
     node_set_instruction_pointer(node, node->instructionPointer + 1);
-    if (node->isOutput) {
+    if (OUTPUT == node->type) {
         tsk_save_output(node);
         node->outputCount++;
     }

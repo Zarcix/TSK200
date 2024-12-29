@@ -11,6 +11,12 @@ typedef enum {
     READ
 } NodeState;
 
+typedef enum {
+    EXEC,
+    STACK,
+    OUTPUT,
+} NodeType;
+
 /**
  * Represents a node
  */
@@ -26,7 +32,7 @@ typedef struct NodeStruct {
     int BAK;
 
     // Output Handling
-    bool isOutput;
+    NodeType type;
     long int outputCount;
 
     // Pipes
@@ -43,7 +49,7 @@ typedef struct NodeStruct {
 } Node;
 
 
-void node_init(Node *node, bool isOutputNode);
+void node_init(Node *node, NodeType nodeType);
 
 void node_execute_instruction(Node *node, Instruction input);
 void node_advance(Node *node);

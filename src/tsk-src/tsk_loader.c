@@ -156,7 +156,7 @@ void parse_tsk_topology(char* tskPath, char* currentNode, int nodeListCount) {
         }
 
         if (strcmp(locationToken, "OUTPUT") == 0) {
-            myNode->isOutput = true;
+            myNode->type = OUTPUT;
             continue;
         }
 
@@ -183,7 +183,7 @@ Node* parse_single_tsk_node(char* tskPath, char* tskNodeDef) {
     }
 
     Node *newNode = malloc(sizeof(Node));
-    node_init(newNode, false);
+    node_init(newNode, EXEC);
 
     char tskLine[MAX_COMMAND_LEN];
     Instruction *instructionList = malloc(MAX_INSTRUCTIONS * sizeof(Instruction));
