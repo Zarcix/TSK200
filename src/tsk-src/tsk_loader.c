@@ -268,7 +268,7 @@ Node** read_tsk_nodes(char* tskPath) {
 
         if (isTSK || isSTK) {
             // Create node
-            Node* newNode;
+            Node* newNode = NULL;
             
             if (isTSK) {
                 newNode = parse_single_tsk_node(tskPath, tskDir->d_name);;
