@@ -171,6 +171,23 @@ void parse_tsk_topology(char* tskPath, char* currentNode, int nodeListCount) {
     }
 }
 
+Node* parse_single_stack_node(char* tskPath, char* tskNodeDef) {
+    char newPath[MAX_COMMAND_LEN] = {};
+    strcat(newPath, tskPath);
+    strcat(newPath, "/");
+    strcat(newPath, tskNodeDef);
+
+    FILE *tskFile = fopen(newPath, "r");
+    if (NULL == tskFile) {
+        return NULL;
+    }
+
+    Node *newNode = malloc(sizeof(Node));
+    node_init(newNode, STACK);
+
+    return newNode;
+}
+
 Node* parse_single_tsk_node(char* tskPath, char* tskNodeDef) {
     char newPath[MAX_COMMAND_LEN] = {};
     strcat(newPath, tskPath);
@@ -241,15 +258,35 @@ Node** read_tsk_nodes(char* tskPath) {
 
     // Create nodes based on tsk instructions
     while (NULL != (tskDir = readdir(tskD))) {
-        if (NULL != strstr(tskDir->d_name, ".tsk")) {
-            Node* newNode = parse_single_tsk_node(tskPath, tskDir->d_name);
-            nodeList[i] = newNode;
+        char *d_extension = strrchr(tskDir->d_name, '.');
+        if (NULL == d_extension) {
+            continue;
+        }
 
+        bool isTSK = 0 == strcmp(d_extension, ".tsk");
+        bool isSTK = 0 == strcmp(d_extension, ".stk");
+
+        if (isTSK || isSTK) {
+            // Create node
+            Node* newNode;
+            
+            if (isTSK) {
+                newNode = parse_single_tsk_node(tskPath, tskDir->d_name);;
+            } else if (isSTK) {
+                newNode = parse_single_stack_node(tskPath, tskDir->d_name);
+            }
+
+            if (NULL == newNode) {
+                continue;
+            }
+
+            // Add node to a map for future use
+            nodeList[i] = newNode;
+            // Only keep file name for node mapping
             char *ptr = strchr(tskDir->d_name, '.');
             if (NULL != ptr) {
                 *ptr = '\0';
             }
-
             node_mappings[i].name = malloc(256 * sizeof(char));
             strcpy(node_mappings[i].name, tskDir->d_name);
             node_mappings[i].node = newNode;
@@ -262,7 +299,11 @@ Node** read_tsk_nodes(char* tskPath) {
 
     // Connect nodes together based on topology
     while (NULL != (tskDir = readdir(tskD))) {
-        if (NULL != strstr(tskDir->d_name, ".topo")) {
+        char *d_extension = strrchr(tskDir->d_name, '.');
+        if (NULL == d_extension) {
+            continue;
+        }
+        if (0 == strcmp(d_extension, ".topo")) {
             parse_tsk_topology(tskPath, tskDir->d_name, tskCount);
         }
     }

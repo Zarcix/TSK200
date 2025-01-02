@@ -313,6 +313,11 @@ void node_advance(Node *node) {
 }
 
 void node_tick(Node *node) {
+    // Stacks don't have a tick cycle
+    if (STACK == node->type) {
+        return;
+    }
+
     // Ensure that the pointer loops back to the beginning
     if (node->instructionPointer >= node->instructionCount) {
         node->instructionPointer = 0;
