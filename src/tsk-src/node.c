@@ -424,6 +424,14 @@ void node_write(Node *node, DirectionalLocation dataDirection, int value) {
                 // Writing to an invalid node causes the node to wait forever
                 break;
             }
+
+            // Stacks are an instant write
+            if (STACK == toWrite->type) {
+                append_value(toWrite->typeData.stack, value);
+                node->state = RUN;
+                break;
+            }
+
             node->currentPipe[dataDirection] = true;
             node->senderData[dataDirection] = value;
             break;

@@ -21,6 +21,7 @@ void append_value(LinkedList *list, int value) {
     LinkedNode *newNode = malloc(sizeof(LinkedNode));
     newNode->nodeValue = value;
 
+    // No risk of a segfault since if it's null it stays null
     LinkedNode *oldHead = list->front;
     newNode->nextNode = oldHead;
     
