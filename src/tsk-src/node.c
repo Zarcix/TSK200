@@ -299,6 +299,11 @@ void node_advance(Node *node) {
         return;
     }
 
+    // For stacks, ip doesn't incremement. Just the data being read.
+    if (STACK == node->type) {
+        return;
+    }
+
     // Initially increment
     node_set_instruction_pointer(node, node->instructionPointer + 1);
     if (OUTPUT == node->type) {
@@ -338,8 +343,23 @@ int node_read(Node *node, DirectionalLocation dataDirection) {
     switch (dataDirection) {
         case LEFT: case RIGHT: case UP: case DOWN: {
             Node *toRead = node->senderPipes[dataDirection];
-            if (NULL == toRead || !toRead->currentPipe[oppositeDirection]) {
+            if (NULL == toRead) {
                 // Reading a null node causes it to read forever
+                break;
+            }
+
+            if (STACK == toRead->type) {
+                LinkedNode *nodeData = pop_value(toRead->typeData.stack);
+                if (NULL == nodeData) {
+                    break;
+                }
+                data = nodeData->nodeValue;
+                node->state = RUN;
+                free(nodeData);
+                break;
+            }
+
+            if (!toRead->currentPipe[oppositeDirection]) {
                 break;
             }
 
