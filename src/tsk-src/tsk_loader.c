@@ -244,7 +244,15 @@ Node** read_tsk_nodes(char* tskPath) {
     
     // Count the amount of tsk nodes
     while (NULL != (tskDir = readdir(tskD))) {
-        if (NULL != strstr(tskDir->d_name, ".tsk")) {
+        char *d_extension = strrchr(tskDir->d_name, '.');
+        if (NULL == d_extension) {
+            continue;
+        }
+
+        bool isTSK = 0 == strcmp(d_extension, ".tsk");
+        bool isSTK = 0 == strcmp(d_extension, ".stk");
+
+        if (isTSK || isSTK) {
             tskCount++;
         }
     }
