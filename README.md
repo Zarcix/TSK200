@@ -54,6 +54,10 @@ View [sample.topo](./sample-commands/sample.topo) for more information.
 
 View [sample.tsk](./sample-commands/sample.tsk) for more information.
 
+### STK Node (Stack)
+
+Create a file with the `.stk` file extension. No other modifications are needed and the text in the `.stk` file will not be parsed.
+
 ## License
 
 MIT, but the TIS-100 instruction set is technically proprietary so...
