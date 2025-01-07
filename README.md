@@ -8,7 +8,8 @@ This is a C program that implements the TIS-100 instruction set.
 - [X] File parsing for TSK nodes. (Check the sigh-commands folder for more information)
 - [X] A stack module
 - [X] Multi node output support
-- [ ] TSK nodes running on their own threads.
+- [ ] Add function nodes that all nodes can access.
+    - Each node that uses a function node duplicates the node (so other nodes don't get blocked) then delete the duplicate after usage.
 - [ ] Pipes that connect all nodes together
 
 ## Building
