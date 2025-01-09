@@ -9,10 +9,15 @@ typedef struct {
     Node* node;
 } NodeMapIndex;
 
+typedef struct {
+    int node_count;
+    Node** node_list;
+} NodeList;
+
 static NodeMapIndex* node_mappings = NULL;
 static int node_mapping_count = 0;
 
-Node** tsk_to_node(char* tskPath);
+NodeList* tsk_to_node(char* tskPath);
 char* tsk_get_node_name(Node* nodeToSearch);
 void tsk_save_output(Node* outNode);
 #endif

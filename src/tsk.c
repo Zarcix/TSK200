@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "./tsk-src/node.h"
 #include "./tsk-src/tsk_loader.h"
@@ -58,39 +59,36 @@ int* parse_args(int argc, char **argv) {
     return argList;
 }
 
+void* run_node(void* arg) {
+    Node* node = (Node*)(arg);
+    printf("Node index %p\n", (void*)node);
+    return NULL;
+}
+
 int main(int argc, char **argv) {
     int *args = parse_args(argc, argv);
+
     int tickDelay = args[0];
     int maxOutputs = args[1];
 
-    Node** nodeList = tsk_to_node(COMMAND_PATH);
-    int nodeIndex = 0;
-    if (NULL == nodeList[nodeIndex]) {
-        return -1;
+    NodeList* node_mapping = tsk_to_node(COMMAND_PATH);
+    
+    int nodeCount = node_mapping->node_count;
+    Node** node_list = node_mapping->node_list;
+
+    pthread_t node_pids[nodeCount] = {};
+
+    for (int i = 0; i < nodeCount; i++) {
+        pthread_create(
+            &node_pids[i], 
+            NULL, 
+            run_node, 
+            node_list[i]
+        );
+        printf("%d: %p\n", i, (void*)node_list[i]);
     }
-    while (true) {
-        if (NULL == nodeList[nodeIndex]) {
-            nodeIndex = 0;
-        }
 
-        Node *currentNode = nodeList[nodeIndex];
-
-        if (OUTPUT == currentNode->type && maxOutputs > 0 && currentNode->typeData.outputCount >= maxOutputs) {
-            PROGRAM_EXIT = true;
-        }
-
-        if (PROGRAM_EXIT && nodeIndex == 0) {
-            // Ensure that all nodes tick properly before stopping program
-            break;
-        }
-
-        if (tickDelay > 0) {
-            sleep(tickDelay);
-        }
-
-        node_tick(currentNode);
-
-
-        nodeIndex++;
+    for (int i = 0; i < nodeCount; i++) {
+        pthread_join(node_pids[i], NULL);
     }
 }

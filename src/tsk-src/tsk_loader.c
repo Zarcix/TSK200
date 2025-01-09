@@ -321,8 +321,11 @@ Node** read_tsk_nodes(char* tskPath) {
 
 /* Public Functions */
 
-Node** tsk_to_node(char* tskPath) {
-    Node **nodes = read_tsk_nodes(tskPath);
+NodeList* tsk_to_node(char* tskPath) {
+    NodeList *nodes = malloc(sizeof(NodeList));
+
+    nodes->node_list = read_tsk_nodes(tskPath);
+    nodes->node_count = node_mapping_count;
 
     return nodes;
 }
