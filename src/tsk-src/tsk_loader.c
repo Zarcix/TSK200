@@ -340,11 +340,18 @@ char* tsk_get_node_name(Node* nodeToSearch) {
     return nodeName;
 }
 
-void tsk_save_output(Node* outNode) {
+void tsk_save_output(Node* outNode, int max_outputs) {
     if (NULL == outNode) {
         printf("Invalid Node\n");
         return;
     }
+
+    if (max_outputs > 0 && outNode->typeData.outputCount >= max_outputs) {
+        return;
+    }
+
+    outNode->typeData.outputCount++;
+
     char* nodeName = strdup(tsk_get_node_name(outNode));
     strcat(nodeName, ".log");
     FILE *tskFile = fopen(nodeName, "a");

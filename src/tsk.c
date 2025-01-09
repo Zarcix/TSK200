@@ -7,9 +7,12 @@
 #include "./tsk-src/node.h"
 #include "./tsk-src/tsk_loader.h"
 
-static bool PROGRAM_EXIT = false;
-static char* COMMAND_PATH = "";
 const int PARSABLE_ARGS = 3;
+
+static char* COMMAND_PATH = "";
+
+static int NODE_MAX_OUTPUTS = 0;
+static int TICK_DELAY = 0;
 
 int* parse_args(int argc, char **argv) {
     // argList[0] = delay time
@@ -61,34 +64,49 @@ int* parse_args(int argc, char **argv) {
 
 void* run_node(void* arg) {
     Node* node = (Node*)(arg);
-    printf("Node index %p\n", (void*)node);
+    
+    while (true) {
+        node_tick(node);
+        if (OUTPUT == node->type && RUN == node->state && STACK != node->type) {
+            tsk_save_output(node, NODE_MAX_OUTPUTS);
+        }
+
+        if (TICK_DELAY > 0) {
+            sleep(TICK_DELAY);
+        }
+    }
+
     return NULL;
 }
 
 int main(int argc, char **argv) {
     int *args = parse_args(argc, argv);
 
-    int tickDelay = args[0];
-    int maxOutputs = args[1];
+    TICK_DELAY = args[0];
+    NODE_MAX_OUTPUTS = args[1];
 
     NodeList* node_mapping = tsk_to_node(COMMAND_PATH);
     
-    int nodeCount = node_mapping->node_count;
+    int node_count = node_mapping->node_count;
     Node** node_list = node_mapping->node_list;
 
-    pthread_t node_pids[nodeCount] = {};
+    pthread_t node_pids[node_count] = {};
 
-    for (int i = 0; i < nodeCount; i++) {
+    // Threading starts
+    for (int i = 0; i < node_count; i++) {
         pthread_create(
             &node_pids[i], 
             NULL, 
             run_node, 
             node_list[i]
         );
-        printf("%d: %p\n", i, (void*)node_list[i]);
+
+
+        // Node Information
+        char* node_name = tsk_get_node_name(node_list[i]);
     }
 
-    for (int i = 0; i < nodeCount; i++) {
+    for (int i = 0; i < node_count; i++) {
         pthread_join(node_pids[i], NULL);
     }
 }

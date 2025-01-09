@@ -6,7 +6,6 @@
 #include "./node.h"
 #include "./instruction.h"
 #include "./tsk_constants.h"
-#include "./tsk_loader.h"
 #include "utils/linkedlist.h"
 
 /* Node Helper Functions */
@@ -306,10 +305,6 @@ void node_advance(Node *node) {
 
     // Initially increment
     node_set_instruction_pointer(node, node->instructionPointer + 1);
-    if (OUTPUT == node->type) {
-        tsk_save_output(node);
-        node->typeData.outputCount++;
-    }
 }
 
 void node_tick(Node *node) {
