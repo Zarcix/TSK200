@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "./tsk-src/node.h"
-#include "./tsk-src/tsk_loader.h"
+#include "./tsk/node.h"
+#include "./tsk/tsk_loader.h"
 
 const int PARSABLE_ARGS = 3;
 

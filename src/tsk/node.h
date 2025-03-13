@@ -4,7 +4,13 @@
 #include <stdbool.h>
 
 #include "instruction.h"
-#include "./utils/linkedlist.h"
+#include "../utils/linkedlist.h"
+
+typedef struct {
+    struct NodeStruct *firstNode;
+    int *data;
+    struct NodeStruct *secondNode;
+} Pipe;
 
 typedef enum {
     RUN,
@@ -42,9 +48,7 @@ typedef struct NodeStruct {
     NodeData typeData;
 
     // Pipes
-    bool currentPipe[4];
-    struct NodeStruct *senderPipes[4];
-    int senderData[4];
+    Pipe* connectedPipes[4];
 
     // Psuedo Memory
     DirectionalLocation LAST;
@@ -65,8 +69,5 @@ int node_read(Node *node, DirectionalLocation dataDirection);
 void node_write(Node *node, DirectionalLocation dataDirection, int value);
 
 void node_cleanup(Node *node);
-
-// Debugs
-void node_debug_print(Node *node, char* nodeName);
 
 #endif

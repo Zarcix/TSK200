@@ -167,7 +167,7 @@ void parse_tsk_topology(char* tskPath, char* currentNode, int nodeListCount) {
         }
 
         
-        myNode->senderPipes[location] = otherNode;
+        // myNode->senderPipes[location] = otherNode;
     }
 }
 

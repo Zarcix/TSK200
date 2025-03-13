@@ -8,30 +8,40 @@ debug: tsk
 release: CFLAGS += -O3 -g
 release: tsk
 
-prebuild:
-	mkdir -p build/
-	mkdir -p build/utils
+## Node Components
 
-## Main Node Files
+TSKSRC=src/tsk
+TSKBLD=build/tsk
+
+node: $(TSKSRC)/node.h $(TSKSRC)/node.c
+	$(CC) $(CFLAGS) -c $(TSKSRC)/node.c -o $(TSKBLD)/node.o
+
+instruction: $(TSKSRC)/instruction.h $(TSKSRC)/instruction.c
+	$(CC) $(CFLAGS) -c $(TSKSRC)/instruction.c -o $(TSKBLD)/instruction.o
+
+tsk_loader: $(TSKSRC)/tsk_loader.h $(TSKSRC)/tsk_loader.c
+	$(CC) $(CFLAGS) -c $(TSKSRC)/tsk_loader.c -o $(TSKBLD)/tsk_loader.o
+
+## Extra Utilities
+
+UTILSRC=src/utils
+UTILBLD=build/utils
+
+utils: linked_list
+
+linked_list: $(UTILSRC)/linkedlist.c $(UTILSRC)/linkedlist.h
+	$(CC) $(CFLAGS) -c $(UTILSRC)/linkedlist.c -o $(UTILBLD)/linkedlist.o
+
+## Main TSK
+
+prebuild:
+	mkdir -p $(TSKBLD)
+	mkdir -p $(UTILBLD)
 
 tsk: prebuild node instruction tsk_loader utils src/tsk.c 
 	$(CC) $(CFLAGS) -o tsk src/tsk.c build/*.o build/utils/*.o
 
-node: src/tsk-src/node.h src/tsk-src/node.c
-	$(CC) $(CFLAGS) -c src/tsk-src/node.c -o build/node.o
-
-instruction: src/tsk-src/instruction.h src/tsk-src/instruction.c
-	$(CC) $(CFLAGS) -c src/tsk-src/instruction.c -o build/instruction.o
-
-tsk_loader: src/tsk-src/tsk_loader.h src/tsk-src/tsk_loader.c
-	$(CC) $(CFLAGS) -c src/tsk-src/tsk_loader.c -o build/tsk_loader.o
-
-## Utilities
-
-utils: linked_list
-
-linked_list: src/tsk-src/utils/linkedlist.c src/tsk-src/utils/linkedlist.h
-	$(CC) $(CFLAGS) -c src/tsk-src/utils/linkedlist.c -o build/utils/linkedlist.o
+## Post Processing
 
 clean:
 	rm -rf **.log

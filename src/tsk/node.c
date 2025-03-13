@@ -6,7 +6,7 @@
 #include "./node.h"
 #include "./instruction.h"
 #include "./tsk_constants.h"
-#include "utils/linkedlist.h"
+#include "../utils/linkedlist.h"
 
 /* Node Helper Functions */
 
@@ -256,7 +256,7 @@ void node_init(Node *node, NodeType nodeType) {
 
     // Init ports
     for (int i = 0; i < PIPE_COUNT; i++) {
-        node->senderPipes[i] = NULL;
+        node->connectedPipes[i] = NULL;
     }
 }
 
@@ -336,71 +336,91 @@ void node_tick(Node *node) {
  * @param dataDirection: The direction to read data from
  */
 int node_read(Node *node, DirectionalLocation dataDirection) {
-    node->state = READ;
+    // TODO Implement This
+    return 0;
+    // node->state = READ;
 
-    int data = 0;
-    DirectionalLocation oppositeDirection = opposite_of_directional(dataDirection);
-    switch (dataDirection) {
-        case LEFT: case RIGHT: case UP: case DOWN: {
-            Node *toRead = node->senderPipes[dataDirection];
-            if (NULL == toRead) {
-                // Reading a null node causes it to read forever
-                break;
-            }
+    // int data = 0;
+    // switch (dataDirection) {
+    //     case LEFT: case RIGHT: case UP: case DOWN: {
+    //         Pipe *toRead = node->connectedPipes[dataDirection];
 
-            if (STACK == toRead->type) {
-                LinkedNode *nodeData = pop_value(toRead->typeData.stack);
-                if (NULL == nodeData) {
-                    break;
-                }
-                data = nodeData->nodeValue;
-                node->state = RUN;
-                free(nodeData);
-                break;
-            }
+    //         // Reading a null node causes it to read forever
+    //         if (NULL == toRead) {
+    //             while (true) {}
+    //         }
 
-            if (!toRead->currentPipe[oppositeDirection]) {
-                break;
-            }
+    //         // TODO Read Stack somehow here
 
-            // Node no longer waits on a successful read
-            data = toRead->senderData[oppositeDirection];
-            node->state = RUN;
+    //         int *nodeData = toRead->data;
+            
+    //         // Wait for node data to be populated
+    //         while (NULL == nodeData) {}
+    //         data = *nodeData;
 
-            // Reset sender
-            toRead->state = RUN;
-            for (int i = 0; i < AnyOrderCount; i++) {
-                toRead->currentPipe[i] = false;
-                toRead->senderData[i] = 0;
-            }
-            node_advance(toRead);
-            break;
-        } case ANY: {
-            for (int i = 0; i < AnyOrderCount; i++) {
-                int possibleRes = node_read(node, AnyOrder[i]);
-                // Only accept the reading if the node is no longer reading
-                if (READ != node->state) {
-                    data = possibleRes;
-                    break;
-                }
-            }
-            break;
-        } case ACC: {
-            node->state = RUN;
-            data = node->ACC;
-            break;
-        } case LAST: {
-            data = node_read(node, node->LAST);
-            break;
-        } case NIL: {
-            node->state = RUN;
-            data = 0;
-            break;
-        } default: {
-            break;
-        }
-    }
-    return data;
+    //         nodeData = NULL;
+    //         // Node *toRead = node->senderPipes[dataDirection];
+    //         // if (NULL == toRead) {
+    //         //     // Reading a null node causes it to read forever
+    //         //     break;
+    //         // }
+    //         // if (STACK == toRead->type) {
+    //         //     LinkedNode *nodeData = pop_value(toRead->typeData.stack);
+    //         //     if (NULL == nodeData) {
+    //         //         break;
+    //         //     }
+    //         //     data = nodeData->nodeValue;
+    //         //     node->state = RUN;
+    //         //     free(nodeData);
+    //         //     break;
+    //         // }
+
+    //         // printf("Other pipe status: %d\n", toRead->currentPipe[oppositeDirection]);
+
+    //         // if (false == toRead->currentPipe[oppositeDirection]) {
+    //         //     break;
+    //         // }
+
+    //         // printf("Data read: %d\n", toRead->senderData[oppositeDirection]);
+
+    //         // // Node no longer waits on a successful read
+    //         // data = toRead->senderData[oppositeDirection];
+    //         // node->state = RUN;
+
+    //         // // Reset sender
+    //         // for (int i = 0; i < AnyOrderCount; i++) {
+    //         //     toRead->currentPipe[i] = false;
+    //         //     toRead->senderData[i] = 0;
+    //         // }
+    //         // toRead->state = RUN;
+    //         // node_advance(toRead);
+    //         // break;
+    //     } case ANY: {
+    //         for (int i = 0; i < AnyOrderCount; i++) {
+    //             int possibleRes = node_read(node, AnyOrder[i]);
+    //             // Only accept the reading if the node is no longer reading
+    //             if (READ != node->state) {
+    //                 data = possibleRes;
+    //                 break;
+    //             }
+    //         }
+    //         break;
+    //     } case ACC: {
+    //         node->state = RUN;
+    //         data = node->ACC;
+    //         break;
+    //     } case LAST: {
+    //         data = node_read(node, node->LAST);
+    //         break;
+    //     } case NIL: {
+    //         node->state = RUN;
+    //         data = 0;
+    //         break;
+    //     } default: {
+    //         break;
+    //     }
+    // }
+    // return data;
 }
 
 /** Write data into a node's pipe
@@ -409,52 +429,61 @@ int node_read(Node *node, DirectionalLocation dataDirection) {
  * @param value: The data to write
  */
 void node_write(Node *node, DirectionalLocation dataDirection, int value) {
-    // If already waiting, wait until another node reads data
-    if (WRITE == node->state) {
-        return;
-    }
+    // TODO Implement this
+    return;
+//     // If already waiting, wait until another node reads data
+//     if (WRITE == node->state) {
+//         return;
+//     }
 
-    // By default start waiting. Waiting will be let go through another node's reading
-    node->state = WRITE;
+//     // By default start waiting. Waiting will be let go through another node's reading
+//     node->state = WRITE;
 
-    switch (dataDirection) {
-        case LEFT: case RIGHT: case UP: case DOWN: {
-            Node *toWrite = node->senderPipes[dataDirection];
-            if (toWrite == NULL) {
-                // Writing to an invalid node causes the node to wait forever
-                break;
-            }
+//     int *pipePacket = malloc(sizeof(int));
+//     *pipePacket = value;
 
-            // Stacks are an instant write
-            if (STACK == toWrite->type) {
-                append_value(toWrite->typeData.stack, value);
-                node->state = RUN;
-                break;
-            }
+//     switch (dataDirection) {
+//         case LEFT: case RIGHT: case UP: case DOWN: {
+//             Pipe *toWrite = node->connectedPipes[dataDirection];
+//             if (toWrite == NULL) {
+//                 // Writing to an invalid pipe causes the node to wait forever
+//                 while (true) {}
+//             }
 
-            node->currentPipe[dataDirection] = true;
-            node->senderData[dataDirection] = value;
-            break;
-        } case ANY: {
-            for (int i = 0; i < AnyOrderCount; i++) {
-                node_write(node, AnyOrder[i], value);
-            }
-            break;
-        } case ACC: {
-            // ACC does not need any waiting to write to
-            node->state = RUN;
-            node->ACC = value;
-            break;
-        } case LAST: {
-            node_write(node, node->LAST, value);
-            break;
-        } case NIL: {
-            node->state = RUN;
-            break;
-        } default: {
-            break;
-        }
-    }
+//             toWrite->data = pipePacket;
+
+//             printf("Wrote %d pipe direction %d\n", *pipePacket, dataDirection);
+
+//             break;
+//         } case ANY: {
+//             for (int i = 0; i < AnyOrderCount; i++) {
+//                 node_write(node, AnyOrder[i], value);
+//             }
+//             break;
+//         } case ACC: {
+//             free(pipePacket);
+//             // ACC does not need any waiting to write to
+//             node->state = RUN;
+//             node->ACC = value;
+//             return;
+//         } case LAST: {
+//             free(pipePacket);
+//             node_write(node, node->LAST, value);
+//             break;
+//         } case NIL: {
+//             free(pipePacket);
+//             node->state = RUN;
+//             return;
+//         } default: {
+//             free(pipePacket);
+//             break;
+//         }
+//     }
+
+//     // Wait for the pipe to be read before continuing
+//     while (pipePacket != NULL) {}
+
+//     printf("Pipe has been read\n");
 }
 
 /** Clean up node allocation
@@ -463,43 +492,4 @@ void node_write(Node *node, DirectionalLocation dataDirection, int value) {
  */
 void node_cleanup(Node *node) {
     free(node->instructionList);
-}
-
-/** Print the information contained in the node
- * 
- * @param node: The node to print info from
- * @param nodeName: An identifier for identification in console
- */
-void node_debug_print(Node *node, char* nodeName) {
-    printf("Node: %s\n", nodeName);
-
-    // Internals
-    printf("\tACC: %d\n", node->ACC);
-    printf("\tBAK: %d\n", node->BAK);
-
-    printf("\n");
-
-    // Ports
-    printf("\tLeft Pipe Val: %d\n", node->senderData[LEFT]);
-    printf("\tLeft Pipe Set: %d\n", node->currentPipe[LEFT]);
-
-    printf("\tRight Pipe Val: %d\n", node->senderData[RIGHT]);
-    printf("\tRight Pipe Set: %d\n", node->currentPipe[RIGHT]);
-
-    printf("\tUp Pipe Val: %d\n", node->senderData[UP]);
-    printf("\tUp Pipe Set: %d\n", node->currentPipe[UP]);
-
-    printf("\tDown Pipe Val: %d\n", node->senderData[DOWN]);
-    printf("\tDown Pipe Set: %d\n", node->currentPipe[DOWN]);
-
-    printf("\n");
-
-    // Errors
-    printf("\tError: %d\n", node->hasError);
-    printf("\tError Message: %s\n", node->errorMessage);
-
-    printf("\n");
-
-    // Others
-    printf("\tWaiting: %u\n", node->state);
 }
