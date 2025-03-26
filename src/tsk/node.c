@@ -6,253 +6,159 @@
 #include "./node.h"
 #include "./instruction.h"
 #include "./tsk_constants.h"
-#include "../utils/linkedlist.h"
 
-/* Node Helper Functions */
-
-static void node_set_instruction_pointer(Node *node, int newPointer) {
-    if (newPointer >= (long)node->instructionCount || newPointer < 0) {
-        newPointer = 0;
-    }
-
-    node->instructionPointer = newPointer;
-}
-
-static int node_get_data(Node *node, Data dataValue) {
-    int val = 0;
-    switch (dataValue.type) {
-        case VALUE: {
-            val = dataValue.value.dataValue;
-            break;
-        }
-        case LOCATION: {
-            int srcData = node_read(node, dataValue.value.nodeValue);
-            if (RUN != node->state) {
-                break;
+void parse_math_instruction(Node *node, Instruction inst) {
+    switch (inst.operation) {
+        case ADD: {
+            Data src = inst.src;
+            if (src.type == STRING) {
+                printf("parse_math_instruction ADD !! Invalid SRC, is STRING\n");
+                exit(1);
             }
-            val = srcData;
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-    return val;
-}
+            
+            int data = 0;
 
-static int node_search_for_label(Node *node, char* labelName) {
-    // If label can't be found, just don't jump lol
-    int labelIndex = node->instructionPointer;
-    for (int i = 0; i < (long)node->instructionCount; i++) {
-        if (node->instructionList[i].operation != OPLBL) {
-            continue;
-        }
-
-        if (node->instructionList[i].src.type != LABEL) {
-            continue;
-        }
-
-        char* nodeLabel = node->instructionList[i].src.value.label;
-        
-        if (!strcmp(nodeLabel, labelName)) {
-            labelIndex = i;
-            break;
-        }
-    }
-    return labelIndex;
-}
-
-/* Execution Helper Functions */
-
-/** Execution for a MOV instruction
- *  
- * @param node: The node that has the move instruction to execute
- * @param src: The direction or value to move from
- * @param dest: The direction or value to move to
- */
-static void execute_instruction_mov(Node *node, Data src, Data dest) {
-    // Preprocessing Checks
-    if (dest.type != LOCATION) {
-        node->hasError = true;
-        node->errorMessage = "MOV Destination Invalid: Not a location";
-        return;
-    }
-
-    // If writing, don't overwrite the current write
-    if (WRITE == node->state) {
-        return;
-    }
-    int srcVal = node_get_data(node, src);
-    if (RUN != node->state) {
-        return;
-    }
-
-    node_write(node, dest.value.nodeValue, srcVal);
-}
-
-/** Execution for math instrcutions
- * 
- * @param node: The node that has a math instruction to execute
- * @param operation: A math OPCode
- * @param amount: A direction or value that has the amount to perform
- */
-static void execute_instruction_math(Node *node, OPCode operation, Data amount) {
-    int totalAmount = 0;
-
-    // Used for ADD and SUB
-    int mathMultipler = 1;
-    if (operation == SUB) {
-        mathMultipler = -1;
-    }
-
-    switch (operation) {
-        case ADD: case SUB: {
-            if (amount.type == VALUE) {
-                totalAmount = amount.value.dataValue * mathMultipler;
-                break;
-            }
-            int dataVal = node_get_data(node, amount);
-            if (RUN != node->state) {
-                return;
-            }
-            totalAmount = dataVal * mathMultipler;
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-    node->ACC += totalAmount;
-}
-
-static void execute_instruction_jump(Node *node, OPCode operation, Data label) {
-    // int here to detect for negative jumps
-    int newIP = node->instructionPointer;
-    switch (operation) {
-        case JMP: {
-            int labelIndex = node_search_for_label(node, label.value.label);
-            newIP = labelIndex;
-            break;
-        }
-        case JEZ: {
-            if (node->ACC == 0) {
-                int labelIndex = node_search_for_label(node, label.value.label);
-                newIP = labelIndex;
-            }
-            break;
-        }
-        case JNZ: {
-            if (node->ACC != 0) {
-                int labelIndex = node_search_for_label(node, label.value.label);
-                newIP = labelIndex;
-            }
-            break;
-        }
-        case JGZ: {
-            if (node->ACC > 0) {
-                int labelIndex = node_search_for_label(node, label.value.label);
-                newIP = labelIndex;
-            }
-            break;
-        }
-        case JLZ: {
-            if (node->ACC < 0) {
-                int labelIndex = node_search_for_label(node, label.value.label);
-                newIP = labelIndex;
-            }
-            break;
-        }
-        case JRO: {
-            if (label.type == LABEL) {
-                printf("Invalid type for JRO.");
-                break;
+            if (src.type == PORT) {
+                data = node_read(node, src.value.dataPort);
+            } else if (src.type == NUMBER) {
+                data = src.value.dataVal;
             }
 
-            int jumpOffset = node_get_data(node, label);
-            if (RUN != node->state) {
-                return;
+            node->ACC += data;
+            break;
+        }
+        case SUB: {
+            Data src = inst.src;
+            if (src.type == STRING) {
+                printf("parse_math_instruction SUB !! Invalid SRC, is STRING\n");
+                exit(1);
+            }
+            
+            int data = 0;
+
+            if (src.type == PORT) {
+                data = node_read(node, src.value.dataPort);
+            } else if (src.type == NUMBER) {
+                data = src.value.dataVal;
             }
 
-            newIP = node->instructionPointer + jumpOffset;
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-
-    // Check for both under and overflows
-    if (newIP - 1 < 0 || newIP >= (long)node->instructionCount) {
-        newIP = 0;
-    }
-    node->instructionPointer = newIP;
-}
-
-/** Execution for register instructions
- * 
- * Register instructions are instructions that only affect the node's register
- * 
- * @param node: The node that has a register instruction to execute
- * @param operation: A register OPCode that the node will be executing
- */
-static void execute_instruction_register(Node *node, OPCode operation) {
-    switch (operation) {
-        case SAV: {
-            node->BAK = node->ACC;
-            break;
-        }
-        case SWP: {
-            int tmp = node->BAK;
-            node->BAK = node->ACC;
-            node->ACC = tmp;
+            node->ACC -= data;
             break;
         }
         case NEG: {
             node->ACC *= -1;
             break;
         }
-        default: {
+        case NOP: default: {
             break;
         }
     }
 }
 
-/* Node Calls */
+void parse_node_instruction(Node *node, OPCode opcode) {
+    switch (opcode) {
+        case SWP: {
+            int tmp = node->ACC;
+            node->ACC = node->BAK;
+            node->BAK = tmp;
+            break;
+        }
+        case SAV: {
+            node->BAK = node->ACC;
+            break;
+        }
+        default: {
+            printf("parse_node_instruction {-} !! Invalid Instruction: %d\n", opcode);
+            exit(1);
+        }
+    }
+}
+
+void parse_instruction_manipulation(Node *node, Instruction inst) {
+    switch(inst.operation) {
+        case JMP: {
+            break;
+        }
+        case JEZ: {
+            break;
+        }
+        case JNZ: {
+            break;
+        }
+        case JGZ: {
+            break;
+        }
+        case JLZ: {
+            break;
+        }
+        case JRO: {
+            Data src = inst.src;
+            if (src.type == STRING) {
+                printf("parse_instruction_manipulation JRO !! Invalid SRC, is STRING\n");
+                exit(1);
+            }
+            
+            int data = 0;
+
+            if (src.type == PORT) {
+                data = node_read(node, src.value.dataPort);
+            } else if (src.type == NUMBER) {
+                data = src.value.dataVal;
+            }
+
+            node->instructionPointer += data;
+            break;
+        }
+        default: {
+            printf("parse_instruction_manipulation {-} !! Invalid Instruction: %d\n", inst.operation);
+            exit(1);
+        }
+    }
+}
+
+void parse_io_instruction(Node *node, Instruction inst) {
+    // Read Data First
+    Data src = inst.src;
+    int value = 0;
+    switch (src.type) {
+        case STRING: {
+            printf("parse_io_instruction STRING !! Invalid SRC Value, found STRING\n");
+            exit(1);
+        }
+        case NUMBER: {
+            value = src.value.dataVal;
+            break;
+        }
+        case PORT: {
+            value = node_read(node, src.value.dataPort);
+            break;
+        }
+    }
+
+    // Write Data After
+    Data dest = inst.dest;
+    if (dest.type != PORT) {
+        printf("parse_io_instruction {-} !! Invalid REGISTER\n");
+        exit(1);
+    }
+    node_write(node, dest.value.dataPort, value);
+}
 
 /** Initialize a node
  * 
  * @param node: The node to initialize
  * @param isOutputNode: Signifies if the node is an output node
  */
-void node_init(Node *node, NodeType nodeType) {
+void node_init(Node *node, Instruction *instructionList) {
     // Init instructions
+    node->instructionList = instructionList;
     node->instructionCount = 0;
     node->instructionPointer = 0;
-    node->instructionList = calloc(MAX_INSTRUCTIONS, sizeof(Instruction));
-    node->state = RUN;
 
     // Init registers
     node->ACC = 0;
     node->BAK = 0;
     node->LAST = NIL;
-
-    // Output
-    node->type = nodeType;
-
-    switch (nodeType) {
-        case OUTPUT: {
-            node->typeData.outputCount = 0;
-            break;
-        }
-        case STACK: {
-            LinkedList* stack = init_linked_list();
-            node->typeData.stack = stack;
-            break;
-        }
-        default: {
-            break;
-        }
-    }
 
     // Init ports
     for (int i = 0; i < PIPE_COUNT; i++) {
@@ -267,24 +173,23 @@ void node_init(Node *node, NodeType nodeType) {
  */
 void node_execute_instruction(Node *node, Instruction input) {
     switch (input.operation) {
+        case NOP: case ADD: case SUB: case NEG: {
+            parse_math_instruction(node, input);
+            break;
+        }
+        case JMP: case JEZ: case JNZ: case JGZ: case JLZ: case JRO: {
+            parse_instruction_manipulation(node, input);
+            break;
+        }
         case MOV: {
-            execute_instruction_mov(node, input.src, input.dest);
+            parse_io_instruction(node, input);
             break;
         }
-        case SUB: case ADD: {
-            execute_instruction_math(node, input.operation, input.src);
+        case SWP: case SAV: {
+            parse_node_instruction(node, input.operation);
             break;
         }
-        case JEZ: case JMP: case JNZ: case JGZ: case JLZ: case JRO: {
-            execute_instruction_jump(node, input.operation, input.src);
-            break;
-        }
-        case SAV: case SWP: case NEG: {
-            execute_instruction_register(node, input.operation);
-            break;
-        }
-        case NOP: default: {
-            break;
+        case LABEL: default: {
         }
     }
 }
@@ -294,196 +199,65 @@ void node_execute_instruction(Node *node, Instruction input) {
  * @param node: The node to step an instruction
  */
 void node_advance(Node *node) {
-    if (RUN != node->state) {
-        return;
-    }
-
-    // For stacks, ip doesn't incremement. Just the data being read.
-    if (STACK == node->type) {
-        return;
-    }
-
-    // Initially increment
-    node_set_instruction_pointer(node, node->instructionPointer + 1);
+    node->instructionPointer++;
 }
 
 void node_tick(Node *node) {
-    // Stacks don't have a tick cycle
-    if (STACK == node->type) {
-        return;
-    }
+    node_advance(node);
 
-    // Ensure that the pointer loops back to the beginning
-    if (node->instructionPointer >= node->instructionCount) {
+    if (node->instructionPointer < 0) {
         node->instructionPointer = 0;
     }
-
-    // Pass over currently reading labels
-    while (node->instructionList[node->instructionPointer].operation == OPLBL) {
-        node_set_instruction_pointer(node, node->instructionPointer + 1);
-        if (node->instructionPointer > node->instructionCount) {
-            node_set_instruction_pointer(node, 0);
-        }
-    }
-
-    Instruction toExecute = node->instructionList[node->instructionPointer];
-    node_execute_instruction(node, toExecute);
-    node_advance(node);
 }
 
 /** Reads data from a node's pipe
  * @param node: The node that's reading data
- * @param dataDirection: The direction to read data from
+ * @param readFrom: The direction to read data from
  */
-int node_read(Node *node, DirectionalLocation dataDirection) {
-    // TODO Implement This
-    return 0;
-    // node->state = READ;
+int node_read(Node *node, Port readFrom) {
+    int value = 0;
+    switch (readFrom) {
+        case ACC: {
+            return node->ACC;
+        }
+        case NIL: {
+            return 0;
+        }
+        case LAST: {
+            int val = node_read(node, node->LAST);
+            return val;
+        }
+        default: {
+        }
+    }
 
-    // int data = 0;
-    // switch (dataDirection) {
-    //     case LEFT: case RIGHT: case UP: case DOWN: {
-    //         Pipe *toRead = node->connectedPipes[dataDirection];
-
-    //         // Reading a null node causes it to read forever
-    //         if (NULL == toRead) {
-    //             while (true) {}
-    //         }
-
-    //         // TODO Read Stack somehow here
-
-    //         int *nodeData = toRead->data;
-            
-    //         // Wait for node data to be populated
-    //         while (NULL == nodeData) {}
-    //         data = *nodeData;
-
-    //         nodeData = NULL;
-    //         // Node *toRead = node->senderPipes[dataDirection];
-    //         // if (NULL == toRead) {
-    //         //     // Reading a null node causes it to read forever
-    //         //     break;
-    //         // }
-    //         // if (STACK == toRead->type) {
-    //         //     LinkedNode *nodeData = pop_value(toRead->typeData.stack);
-    //         //     if (NULL == nodeData) {
-    //         //         break;
-    //         //     }
-    //         //     data = nodeData->nodeValue;
-    //         //     node->state = RUN;
-    //         //     free(nodeData);
-    //         //     break;
-    //         // }
-
-    //         // printf("Other pipe status: %d\n", toRead->currentPipe[oppositeDirection]);
-
-    //         // if (false == toRead->currentPipe[oppositeDirection]) {
-    //         //     break;
-    //         // }
-
-    //         // printf("Data read: %d\n", toRead->senderData[oppositeDirection]);
-
-    //         // // Node no longer waits on a successful read
-    //         // data = toRead->senderData[oppositeDirection];
-    //         // node->state = RUN;
-
-    //         // // Reset sender
-    //         // for (int i = 0; i < AnyOrderCount; i++) {
-    //         //     toRead->currentPipe[i] = false;
-    //         //     toRead->senderData[i] = 0;
-    //         // }
-    //         // toRead->state = RUN;
-    //         // node_advance(toRead);
-    //         // break;
-    //     } case ANY: {
-    //         for (int i = 0; i < AnyOrderCount; i++) {
-    //             int possibleRes = node_read(node, AnyOrder[i]);
-    //             // Only accept the reading if the node is no longer reading
-    //             if (READ != node->state) {
-    //                 data = possibleRes;
-    //                 break;
-    //             }
-    //         }
-    //         break;
-    //     } case ACC: {
-    //         node->state = RUN;
-    //         data = node->ACC;
-    //         break;
-    //     } case LAST: {
-    //         data = node_read(node, node->LAST);
-    //         break;
-    //     } case NIL: {
-    //         node->state = RUN;
-    //         data = 0;
-    //         break;
-    //     } default: {
-    //         break;
-    //     }
-    // }
-    // return data;
+    return value;
 }
 
 /** Write data into a node's pipe
  * @param node: The node that's writing the data
- * @param dataDirection: The direction to write the data to
+ * @param writeTo: The direction to write the data to
  * @param value: The data to write
  */
-void node_write(Node *node, DirectionalLocation dataDirection, int value) {
-    // TODO Implement this
-    return;
-//     // If already waiting, wait until another node reads data
-//     if (WRITE == node->state) {
-//         return;
-//     }
+void node_write(Node *node, Port writeTo, int value) {
+    // Quit early when writing to internal ports
+    switch (writeTo) {
+        case ACC: {
+            node->ACC = value;
+            return;
+        }
+        case NIL: {
+            return;
+        }
+        case LAST: {
+            node_write(node, node->LAST, value);
+            return;
+        }
+        default: {
+        }
+    }
 
-//     // By default start waiting. Waiting will be let go through another node's reading
-//     node->state = WRITE;
-
-//     int *pipePacket = malloc(sizeof(int));
-//     *pipePacket = value;
-
-//     switch (dataDirection) {
-//         case LEFT: case RIGHT: case UP: case DOWN: {
-//             Pipe *toWrite = node->connectedPipes[dataDirection];
-//             if (toWrite == NULL) {
-//                 // Writing to an invalid pipe causes the node to wait forever
-//                 while (true) {}
-//             }
-
-//             toWrite->data = pipePacket;
-
-//             printf("Wrote %d pipe direction %d\n", *pipePacket, dataDirection);
-
-//             break;
-//         } case ANY: {
-//             for (int i = 0; i < AnyOrderCount; i++) {
-//                 node_write(node, AnyOrder[i], value);
-//             }
-//             break;
-//         } case ACC: {
-//             free(pipePacket);
-//             // ACC does not need any waiting to write to
-//             node->state = RUN;
-//             node->ACC = value;
-//             return;
-//         } case LAST: {
-//             free(pipePacket);
-//             node_write(node, node->LAST, value);
-//             break;
-//         } case NIL: {
-//             free(pipePacket);
-//             node->state = RUN;
-//             return;
-//         } default: {
-//             free(pipePacket);
-//             break;
-//         }
-//     }
-
-//     // Wait for the pipe to be read before continuing
-//     while (pipePacket != NULL) {}
-
-//     printf("Pipe has been read\n");
+    // TODO handle directionals here
 }
 
 /** Clean up node allocation

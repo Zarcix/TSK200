@@ -4,30 +4,9 @@
 #include <stdbool.h>
 
 #include "instruction.h"
+#include "pipe.h"
+
 #include "../utils/linkedlist.h"
-
-typedef struct {
-    struct NodeStruct *firstNode;
-    int *data;
-    struct NodeStruct *secondNode;
-} Pipe;
-
-typedef enum {
-    RUN,
-    WRITE,
-    READ
-} NodeState;
-
-typedef enum {
-    EXEC,
-    STACK,
-    OUTPUT,
-} NodeType;
-
-typedef union {
-    long int outputCount;
-    LinkedList *stack;
-} NodeData;
 
 /**
  * Represents a node
@@ -37,36 +16,27 @@ typedef struct NodeStruct {
     Instruction *instructionList;
     unsigned int instructionCount;
     unsigned int instructionPointer;
-    NodeState state;
 
     // Registers
     int ACC;
     int BAK;
 
-    // Node Types
-    NodeType type;
-    NodeData typeData;
-
     // Pipes
     Pipe* connectedPipes[4];
 
     // Psuedo Memory
-    DirectionalLocation LAST;
-    
-    // Error Handling
-    bool hasError;
-    char *errorMessage;
+    Port LAST;
 } Node;
 
 
-void node_init(Node *node, NodeType nodeType);
+void node_init(Node *node, Instruction *instructionList);
 
 void node_execute_instruction(Node *node, Instruction input);
 void node_advance(Node *node);
 void node_tick(Node *node);
 
-int node_read(Node *node, DirectionalLocation dataDirection);
-void node_write(Node *node, DirectionalLocation dataDirection, int value);
+int node_read(Node *node, Port readFrom);
+void node_write(Node *node, Port writeTo, int value);
 
 void node_cleanup(Node *node);
 

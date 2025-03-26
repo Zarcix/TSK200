@@ -25,9 +25,7 @@ typedef enum {
 
 	// Movement
 	MOV,
-
-	// Other
-	OPLBL,
+	LABEL,
 } OPCode;
 
 /**
@@ -52,28 +50,19 @@ typedef enum {
 
 	// Register
 	ACC,
-} DirectionalLocation;
-
-static const int AnyOrderCount = 4;
-
-static const DirectionalLocation AnyOrder[4] = {
-	LEFT,
-	RIGHT,
-	UP,
-	DOWN
-};
+} Port;
 
 typedef enum {
-	VALUE,
-	LOCATION,
-	LABEL
+	NUMBER,
+	PORT,
+	STRING,
 } DataType;
 
 typedef struct {
 	union {
-		char* label;
-		int dataValue;
-		DirectionalLocation nodeValue;
+		char* dataStr;
+		int dataVal;
+		Port dataPort;
 	} value;
 	DataType type;
 } Data;
@@ -92,13 +81,5 @@ typedef struct {
 	Data src;
 	Data dest;
 } Instruction;
-
-DirectionalLocation opposite_of_directional(DirectionalLocation originalDirection);
-
-OPCode string_to_opcode(char* inputString);
-DirectionalLocation string_to_direction(char* inputString);
-
-bool opcode_is_jump_instruction(OPCode operation);
-bool direction_is_node_direction(DirectionalLocation directionInQuestion);
 
 #endif
