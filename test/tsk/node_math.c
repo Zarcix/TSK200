@@ -1,34 +1,40 @@
-#include <assert.h>
+#include <criterion/criterion.h>
+#include <criterion/internal/assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "../../src/tsk/node.h"
 
-Node* node_math_generate_node() {
-    Node *toTest = malloc(sizeof(Node));
+static Node *toTest = NULL;
+
+void node_math_setup_null(void) {
+    toTest = malloc(sizeof(Node));
     node_init(toTest, NULL);
-    return toTest;
 }
 
-void node_math_nop() {
-    Node* toTest = node_math_generate_node();
+void node_math_setup_init_acc(void) {
+    toTest = malloc(sizeof(Node));
+    node_init(toTest, NULL);
+    toTest->ACC = 15;
+}
 
+void node_math_teardown(void) {
+    node_cleanup(toTest);
+    free(toTest);
+}
+
+Test(NODE_MATH, NOP_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_teardown) {
     Instruction toExecute;
     toExecute.operation = NOP;
 
     node_execute_instruction(toTest, toExecute);
 
-    assert(toTest->ACC == 0);
-    assert(toTest->BAK == 0);
-
-    free(toTest);
-    printf("PASS - node_math_nop\n");
+    cr_expect(toTest->ACC == 0);
+    cr_expect(toTest->BAK == 0);
 }
 
-void node_math_add() {
-    Node* toTest = node_math_generate_node();
-
+Test(NODE_MATH, ADD_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_teardown) {
     Instruction posNumExec;
     posNumExec.operation = ADD;
 
@@ -58,16 +64,11 @@ void node_math_add() {
     node_execute_instruction(toTest, negNumExec);
     node_execute_instruction(toTest, regValExec);
 
-    assert(toTest->ACC == -6);
+    cr_expect(toTest->ACC == -6);
 
-    free(toTest);
-
-    printf("PASS - node_math_add\n");
 }
 
-void node_math_sub() {
-    Node* toTest = node_math_generate_node();
-
+Test(NODE_MATH, SUB_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_teardown) {
     Instruction posNumExec;
     posNumExec.operation = SUB;
 
@@ -97,31 +98,13 @@ void node_math_sub() {
     node_execute_instruction(toTest, negNumExec);
     node_execute_instruction(toTest, regValExec);
 
-    assert(toTest->ACC == 6);
-
-    free(toTest);
-
-    printf("PASS - node_math_sub\n");
+    cr_expect(toTest->ACC == 6);
 }
 
-void node_math_neg() {
-    Node* toTest = node_math_generate_node();
-    toTest->ACC = 15;
-
+Test(NODE_MATH, NEG_FUNCTIONALITY, .init=node_math_setup_init_acc, .fini=node_math_teardown) {
     Instruction negExec;
     negExec.operation = NEG;
 
     node_execute_instruction(toTest, negExec);
-
-    assert(toTest->ACC == -15);
-
-    free(toTest);
-    printf("PASS - node_math_neg\n");
-}
-
-void node_math_runner() {
-    node_math_nop();
-    node_math_add();
-    node_math_sub();
-    node_math_neg();
+    cr_expect(toTest->ACC == -15);
 }

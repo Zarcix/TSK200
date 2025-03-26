@@ -12,7 +12,7 @@ UTILBLD=build/utils
 ## Main Run Commands
 
 test: prebuild node
-	$(CC) $(CFLAGS) -o test_runner test/runner.c build/tsk/*.o
+	$(CC) $(CFLAGS) -o test_runner test/runner.c build/tsk/*.o -l criterion
 
 debug: CFLAGS += -g
 debug: CFLAGS += -DDEBUG

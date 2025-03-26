@@ -1,35 +1,42 @@
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <criterion/criterion.h>
 
 #include "../../src/tsk/node.h"
 #include "../../src/tsk/tsk_constants.h"
 
-void node_init_with_no_instructions() {
-    Node *toTest = malloc(sizeof(Node));
-    Instruction *instList = NULL;
-    node_init(toTest, instList);
+static Node *toTest;
+
+void setup(void) {
+    toTest = malloc(sizeof(Node));
+}
+
+void node_init_teardown(void) {
+    node_cleanup(toTest);
+    free(toTest);
+}
+
+Test(NODE_INIT, EMPTY_INSTRUCTION_LIST, .init=setup, .fini=node_init_teardown) {
+    node_init(toTest, NULL);
 
     // Check Instruction Initialization
-    assert(toTest->instructionList == instList);
-    assert(toTest->instructionCount == 0);
-    assert(toTest->instructionPointer == 0);
+    cr_expect_null(toTest->instructionList);
+    cr_expect(toTest->instructionCount == 0);
+    cr_expect(toTest->instructionPointer == 0);
 
     // Check Register Initialization
-    assert(toTest->ACC == 0);
-    assert(toTest->BAK == 0);
-    assert(toTest->LAST == NIL);
+    cr_expect(toTest->ACC == 0);
+    cr_expect(toTest->BAK == 0);
+    cr_expect(toTest->LAST == NIL);
+
+    // Check Register Initialization
+    cr_expect(toTest->ACC == 0);
+    cr_expect(toTest->BAK == 0);
+    cr_expect(toTest->LAST == NIL);
 
     // Check Port Initialization
     for (int i = 0; i < PIPE_COUNT; i++) {
-        assert(toTest->connectedPipes[i] == NULL);
+        cr_expect_null(toTest->connectedPipes[i]);
     }
-
-    free(toTest);
-    printf("PASS - node_init_with_no_instructions\n");
-}
-
-void node_init_runner() {
-    node_init_with_no_instructions();
 }
