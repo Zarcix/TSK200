@@ -42,7 +42,7 @@ prebuild:
 	mkdir -p $(TSKBLD)
 	mkdir -p $(UTILBLD)
 
-tsk: prebuild node instruction tsk_loader utils src/tsk.c 
+tsk: prebuild node tsk_loader utils src/tsk.c 
 	$(CC) $(CFLAGS) -o tsk src/tsk.c build/tsk/*.o build/utils/*.o
 
 ## Post Processing
