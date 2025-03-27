@@ -15,8 +15,6 @@ static char* COMMAND_PATH = "";
 static int NODE_MAX_OUTPUTS = 0;
 static int TICK_DELAY = 0;
 
-int* parse_args(int argc, char **argv) {
-}
-
 int main(int argc, char **argv) {
+    tsksrc_to_node("node.tsk");
 }

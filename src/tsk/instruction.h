@@ -82,4 +82,7 @@ typedef struct {
 	Data dest;
 } Instruction;
 
+OPCode str_to_opcode(char* str);
+Data str_to_data(char* str);
+
 #endif
