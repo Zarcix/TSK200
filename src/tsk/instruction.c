@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-OPCode string_to_opcode(char* str) {
+OPCode str_to_opcode(char* str) {
     const int OPCodeCount = 14;
     const char *OPCodeString[] = {
         "SUB",
@@ -35,7 +35,10 @@ OPCode string_to_opcode(char* str) {
 }
 
 Data str_to_data(char* str) {
-    Data strData;
+    Data strData = {};
+    if (NULL == str) {
+        return strData;
+    }
 
     const int LocationCount = 8;
     const char *LocationStrings[] = {

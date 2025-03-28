@@ -6,7 +6,7 @@
 #include <argp.h>
 
 #include "./tsk/node.h"
-#include "./tsk/tsk_loader.h"
+#include "./tsk_misc/tsk_loader.h"
 
 const int PARSABLE_ARGS = 3;
 
@@ -16,5 +16,8 @@ static int NODE_MAX_OUTPUTS = 0;
 static int TICK_DELAY = 0;
 
 int main(int argc, char **argv) {
-    tsksrc_to_node("node.tsk");
+    Node *test = malloc(sizeof(Node));
+    Node *test2 = malloc(sizeof(Node));
+    tsksrc_to_node(test, "node");
+    tsksrc_to_node(test2, "node2");
 }

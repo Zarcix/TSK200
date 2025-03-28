@@ -9,6 +9,9 @@ TSKBLD=build/tsk
 UTILSRC=src/utils
 UTILBLD=build/utils
 
+MSCSRC=src/tsk_misc
+MSCBLD=build/tsk_misc
+
 ## Main Run Commands
 
 test: prebuild node
@@ -25,25 +28,39 @@ release: tsk
 
 ## Sub Commands
 
+# TSK
 node: $(TSKSRC)/node.h $(TSKSRC)/node.c
 	$(CC) $(CFLAGS) -c $(TSKSRC)/node.c -o $(TSKBLD)/node.o
 
-tsk_loader: $(TSKSRC)/tsk_loader.h $(TSKSRC)/tsk_loader.c
-	$(CC) $(CFLAGS) -c $(TSKSRC)/tsk_loader.c -o $(TSKBLD)/tsk_loader.o
+instruction: $(TSKSRC)/instruction.h $(TSKSRC)/instruction.c
+	$(CC) $(CFLAGS) -c $(TSKSRC)/instruction.c -o $(TSKBLD)/instruction.o
 
-utils: linked_list
+# UTILS
 
-linked_list: $(UTILSRC)/linkedlist.c $(UTILSRC)/linkedlist.h
+utils: linked_list strfun
+
+linked_list: $(UTILSRC)/linkedlist.h $(UTILSRC)/linkedlist.c
 	$(CC) $(CFLAGS) -c $(UTILSRC)/linkedlist.c -o $(UTILBLD)/linkedlist.o
+
+strfun: $(UTILSRC)/strfun.h $(UTILSRC)/strfun.c
+	$(CC) $(CFLAGS) -c $(UTILSRC)/strfun.c -o $(UTILBLD)/strfun.o
+
+# MISC
+
+misc: tsk_loader
+
+tsk_loader: $(MSCSRC)/tsk_loader.h $(MSCSRC)/tsk_loader.c
+	$(CC) $(CFLAGS) -c $(MSCSRC)/tsk_loader.c -o $(MSCBLD)/tsk_loader.o
 
 ## Main TSK
 
 prebuild:
+	mkdir -p $(MSCBLD)
 	mkdir -p $(TSKBLD)
 	mkdir -p $(UTILBLD)
 
-tsk: prebuild node tsk_loader utils src/tsk.c 
-	$(CC) $(CFLAGS) -o tsk src/tsk.c build/tsk/*.o build/utils/*.o
+tsk: prebuild utils node instruction misc src/tsk.c 
+	$(CC) $(CFLAGS) -o tsk src/tsk.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o
 
 ## Post Processing
 

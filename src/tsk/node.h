@@ -7,6 +7,7 @@
 #include "pipe.h"
 
 #include "../utils/linkedlist.h"
+#include "../utils/hashmap.h"
 
 /**
  * Represents a node
@@ -16,6 +17,7 @@ typedef struct NodeStruct {
     Instruction *instructionList;
     unsigned int instructionCount;
     unsigned int instructionPointer;
+    struct hashmap_s labelMap;
 
     // Registers
     int ACC;
