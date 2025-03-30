@@ -1,6 +1,3 @@
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <criterion/criterion.h>
 
 #include "../../src/tsk/node.h"
@@ -8,7 +5,7 @@
 
 static Node *toTest;
 
-void setup(void) {
+void node_init_setup(void) {
     toTest = malloc(sizeof(Node));
 }
 
@@ -17,8 +14,8 @@ void node_init_teardown(void) {
     free(toTest);
 }
 
-Test(NODE_INIT, EMPTY_INSTRUCTION_LIST, .init=setup, .fini=node_init_teardown) {
-    node_init(toTest, NULL);
+Test(NODE_INIT, EMPTY_INSTRUCTION_LIST, .init=node_init_setup, .fini=node_init_teardown) {
+    node_init(toTest);
 
     // Check Instruction Initialization
     cr_expect_null(toTest->instructionList);

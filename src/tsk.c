@@ -17,7 +17,5 @@ static int TICK_DELAY = 0;
 
 int main(int argc, char **argv) {
     Node *test = malloc(sizeof(Node));
-    Node *test2 = malloc(sizeof(Node));
-    tsksrc_to_node(test, "node");
-    tsksrc_to_node(test2, "node2");
+    tsksrc_to_node(test, "test");
 }

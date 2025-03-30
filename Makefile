@@ -14,10 +14,9 @@ MSCBLD=build/tsk_misc
 
 ## Main Run Commands
 
-test: prebuild node
-	$(CC) $(CFLAGS) -o test_runner test/runner.c build/tsk/*.o -l criterion
+test: prebuild misc utils instruction node 
+	$(CC) $(CFLAGS) -o test_runner test/runner.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o -l criterion
 	./test_runner
-	rm -rf test_runner
 
 debug: CFLAGS += -g
 debug: CFLAGS += -DDEBUG

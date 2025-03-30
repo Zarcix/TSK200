@@ -31,7 +31,7 @@ typedef struct NodeStruct {
 } Node;
 
 
-void node_init(Node *node, Instruction *instructionList);
+void node_init(Node *node);
 
 void node_execute_instruction(Node *node, Instruction input);
 void node_advance(Node *node);

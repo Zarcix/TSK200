@@ -149,9 +149,9 @@ void parse_io_instruction(Node *node, Instruction inst) {
  * @param node: The node to initialize
  * @param isOutputNode: Signifies if the node is an output node
  */
-void node_init(Node *node, Instruction *instructionList) {
+void node_init(Node *node) {
     // Init instructions
-    node->instructionList = instructionList;
+    node->instructionList = NULL;
     node->instructionCount = 0;
     node->instructionPointer = 0;
 

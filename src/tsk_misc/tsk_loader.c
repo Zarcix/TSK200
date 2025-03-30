@@ -14,6 +14,10 @@
 
 void read_next_line(FILE *fd, char *section) {
     fgets(section, MAX_STR_SIZE, fd);
+    if (0 == strcmp(section, "")) {
+        section = "";
+        return;
+    }
 
     // Skip over empty lines
     while (0 == strcmp(section, "\n")) {
@@ -45,6 +49,10 @@ void read_instructions(Node* node, char *nodeName) {
     while (!feof(fd)) {
         char line[MAX_STR_SIZE] = "";
         read_next_line(fd, line);
+        // If there is nothing after it's now null.
+        if (0 == strcmp(line, "")) {
+            break;
+        }
 
         char *labelSep = line;
         if (NULL != strstr(line, ":")) {

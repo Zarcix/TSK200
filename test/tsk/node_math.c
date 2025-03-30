@@ -1,5 +1,5 @@
 #include <criterion/criterion.h>
-#include <criterion/internal/assert.h>
+#include <criterion/assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,12 +10,12 @@ static Node *toTest = NULL;
 
 void node_math_setup_null(void) {
     toTest = malloc(sizeof(Node));
-    node_init(toTest, NULL);
+    node_init(toTest);
 }
 
 void node_math_setup_init_acc(void) {
     toTest = malloc(sizeof(Node));
-    node_init(toTest, NULL);
+    node_init(toTest);
     toTest->ACC = 15;
 }
 
