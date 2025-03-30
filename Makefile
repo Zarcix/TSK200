@@ -21,11 +21,28 @@ debug: CFLAGS += -g
 debug: CFLAGS += -DDEBUG
 debug: tsk
 
-test: prebuild misc utils instruction node 
+test: prebuild utils misc node instruction 
 	$(CC) $(CFLAGS) -o test_runner test/runner.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o -l criterion
 	./test_runner
 
+clean:
+	rm -rf **.log
+	rm -rf build
+	rm -f tsk
+	rm -f test_runner
+
 ## Sub Commands
+
+## Main TSK
+
+tsk: prebuild utils misc node instruction src/tsk.c 
+	$(CC) $(CFLAGS) -o tsk src/tsk.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o
+
+prebuild:
+	rm -rf build
+	mkdir -p $(MSCBLD)
+	mkdir -p $(TSKBLD)
+	mkdir -p $(UTILBLD)
 
 # TSK
 node: $(TSKSRC)/node.h $(TSKSRC)/node.c
@@ -50,21 +67,3 @@ misc: tsk_loader
 
 tsk_loader: $(MSCSRC)/tsk_loader.h $(MSCSRC)/tsk_loader.c
 	$(CC) $(CFLAGS) -c $(MSCSRC)/tsk_loader.c -o $(MSCBLD)/tsk_loader.o
-
-## Main TSK
-
-prebuild:
-	mkdir -p $(MSCBLD)
-	mkdir -p $(TSKBLD)
-	mkdir -p $(UTILBLD)
-
-tsk: prebuild utils node instruction misc src/tsk.c 
-	$(CC) $(CFLAGS) -o tsk src/tsk.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o
-
-## Post Processing
-
-clean:
-	rm -rf **.log
-	rm -rf build
-	rm -f tsk
-	rm -f test_runner
