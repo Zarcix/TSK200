@@ -1,32 +1,12 @@
-#include "instruction.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "./instruction.h"
+
 OPCode str_to_opcode(char* str) {
-    const int OPCodeCount = 14;
-    const char *OPCodeString[] = {
-        "SUB",
-        "ADD",
-        "NEG",
-        "NOP",
-
-        "JEZ",
-        "JMP",
-        "JNZ",
-        "JGZ",
-        "JLZ",
-        "JRO",
-
-        "SAV",
-        "SWP",
-
-        "MOV",
-        "OPLBL"
-    };
-
-    for (int i = 0; i < OPCodeCount; i++) {
-        if (0 == strcmp(OPCodeString[i], str)) {
+    for (int i = 0; i < OPCODE_COUNT; i++) {
+        if (0 == strcmp(OPCODE_AS_STR[i], str)) {
             return i;
         }
     }
@@ -43,22 +23,8 @@ Data str_to_data(char* str) {
         return strData;
     }
 
-    const int LocationCount = 8;
-    const char *LocationStrings[] = {
-        "LEFT",
-        "RIGHT",
-        "UP",
-        "DOWN",
-        "ANY",
-
-        "NIL",
-        "LAST",
-
-        "ACC"
-    };
-
-    for (int i = 0; i < LocationCount; i++) {
-        if (0 == strcmp(LocationStrings[i], str)) {
+    for (int i = 0; i < PORT_COUNT; i++) {
+        if (0 == strcmp(PORT_AS_STR[i], str)) {
             strData.type = PORT;
             strData.value.dataPort = i;
             return strData;

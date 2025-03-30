@@ -3,8 +3,9 @@
 
 #include <stdbool.h>
 
-#include "instruction.h"
-#include "pipe.h"
+#include "./instruction.h"
+#include "./pipe.h"
+#include "./tsk_constants.h"
 
 #include "../utils/linkedlist.h"
 #include "../utils/hashmap.h"
@@ -14,7 +15,7 @@
  */
 typedef struct NodeStruct {
     // Instructions
-    Instruction *instructionList;
+    Instruction* instructionList;
     unsigned int instructionCount;
     unsigned int instructionPointer;
     struct hashmap_s labelMap;
@@ -24,7 +25,7 @@ typedef struct NodeStruct {
     int BAK;
 
     // Pipes
-    Pipe* connectedPipes[4];
+    Pipe* connectedPipes[PIPE_COUNT];
 
     // Psuedo Memory
     Port LAST;

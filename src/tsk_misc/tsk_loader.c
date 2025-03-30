@@ -37,15 +37,7 @@ void read_instructions(Node* node, char *nodeName) {
         exit(1);
     }
 
-    // Parse Instructions
-    struct hashmap_s labelMapping;
-    if (0 != hashmap_create(INIT_MAP_SIZE, &labelMapping)) {
-        printf("read_instructions Error || Failed to create label hashmap");
-        exit(1);
-    }
-
     int instructionCounter = 0;
-    Instruction *instructionList = malloc(sizeof(Instruction) * MAX_INSTRUCTIONS);
     while (!feof(fd)) {
         char line[MAX_STR_SIZE] = "";
         read_next_line(fd, line);
@@ -65,7 +57,7 @@ void read_instructions(Node* node, char *nodeName) {
             char *mapKey = strdup(labelSep);
             int *mapVal = malloc(sizeof(int));
             *mapVal = instructionCounter;
-            if (0 != hashmap_put(&labelMapping, mapKey, strlen(labelSep), mapVal)) {
+            if (0 != hashmap_put(&node->labelMap, mapKey, strlen(labelSep), mapVal)) {
                 printf("read_instructions Error !! Unable to add label '%s' to label hashmap", labelSep);
                 exit(1);
             }
@@ -80,7 +72,7 @@ void read_instructions(Node* node, char *nodeName) {
                 .src = src,
             };
 
-            instructionList[instructionCounter] = labelInst;
+            node->instructionList[instructionCounter] = labelInst;
 
             labelSep = strtok(NULL, "");
             instructionCounter++;
@@ -106,17 +98,15 @@ void read_instructions(Node* node, char *nodeName) {
             .dest = dest,
         };
 
-        instructionList[instructionCounter] = opInst;
+        node->instructionList[instructionCounter] = opInst;
         instructionCounter++;
     }
 
-    node->labelMap = labelMapping;
-    node->instructionList = instructionList;
     node->instructionCount = instructionCounter;
 }
 
 void read_topology(FILE *fd) {
-
+    // TODO Once I figure out how tf to get MOV working
 }
 
 /* Public Functions */

@@ -2,8 +2,11 @@
 #define INSTRUCTION
 
 /**
- * Operation codes
- */
+	OP Code Definition
+		- All opcodes are defined below
+		- If an opcode is added or the order changes, make sure to change the string equivalent and the count
+		- ORDER MATTERS HERE
+*/
 typedef enum {
 	// Math
 	SUB,
@@ -28,13 +31,35 @@ typedef enum {
 	LABEL,
 } OPCode;
 
+static const char* OPCODE_AS_STR[] = {
+	"SUB",
+	"ADD",
+	"NEG",
+	"NOP",
+	"JEZ",
+	"JMP",
+	"JNZ",
+	"JGZ",
+	"JLZ",
+	"JRO",
+	"SAV",
+	"SWP",
+	"MOV",
+	"OPLBL"
+};
+
+static const int OPCODE_COUNT = 14;
+
 /**
- * Directional locations for operations
+ * Ports for a given operation
  * 
  * Three Types:
  * - Directionals: Used for moving elements around
  * - Specials: Special pseudo operations
  * - Register: Interact with register
+ * 
+ * If a change is done, make sure to reflect that change in the string definitions and count. 
+ * ORDER MATTERS
  */
 typedef enum {
 	// Directionals
@@ -52,6 +77,27 @@ typedef enum {
 	ACC,
 } Port;
 
+
+static const char *PORT_AS_STR[] = {
+	"LEFT",
+	"RIGHT",
+	"UP",
+	"DOWN",
+	"ANY",
+
+	"NIL",
+	"LAST",
+
+	"ACC"
+};
+
+static const int PORT_COUNT = 8;
+
+/**
+	Available Data Types
+		- This covers all available data types for use in <SRC> or <DEST> in a given command
+		- When adding a new data type, make sure to update the union too
+*/
 typedef enum {
 	NUMBER,
 	PORT,

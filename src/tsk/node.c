@@ -7,6 +7,39 @@
 #include "./instruction.h"
 #include "./tsk_constants.h"
 
+void node_jump_to_label(Node *node, Instruction instruction) {
+    if (instruction.src.type != STRING) {
+        printf("Invalid label. Not a string.\n");
+        exit(1);
+    }
+
+    char* labelName = instruction.src.value.dataStr;
+
+    void* idx_void = hashmap_get(&node->labelMap, labelName, strlen(labelName));
+    if (NULL == idx_void) {
+        printf("Invalid label name: %s\n", labelName);
+        exit(1);
+    }
+
+    unsigned int label_idx = *(unsigned int*)idx_void;
+    node->instructionPointer = label_idx;
+}
+
+/** INSTRUCTION SPECIFIC PARSERS **/
+
+/** Parse a given math instruction
+        - Format: <OPCODE> <SRC>
+        - Supported OPCodes: 
+            1. ADD
+            2. SUB
+            3. NEG
+            4. NOP
+        - Supported SRC Types:
+            1. PORT
+            2. NUMBER
+        - Supported DEST Types:
+            DEST is not supported 
+*/
 void parse_math_instruction(Node *node, Instruction inst) {
     switch (inst.operation) {
         case ADD: {
@@ -55,6 +88,16 @@ void parse_math_instruction(Node *node, Instruction inst) {
     }
 }
 
+/** Parse a given node instruction
+        - Format: <OPCODE>
+        - Supported OPCodes: 
+            1. SAV
+            2. SWP
+        - Supported SRC Types:
+            SRC is not supported 
+        - Supported DEST Types:
+            DEST is not supported 
+*/
 void parse_node_instruction(Node *node, OPCode opcode) {
     switch (opcode) {
         case SWP: {
@@ -74,21 +117,50 @@ void parse_node_instruction(Node *node, OPCode opcode) {
     }
 }
 
-void parse_instruction_manipulation(Node *node, Instruction inst) {
+/** Parse an instruction that changes the node's instruction pointer
+        - Format: <OPCODE> <SRC>
+        - Supported OPCodes: 
+            1. JMP
+            2. JEZ
+            3. JNZ
+            4. JGZ
+            5. JLZ
+            6. JRO
+        - Supported SRC Types:
+            1. STRING
+            2. NUMBER (JRO)
+            3. PORT (JRO)
+        - Supported DEST Types:
+            DEST is not supported 
+*/
+void parse_inst_pointer_instruction(Node *node, Instruction inst) {
     switch(inst.operation) {
         case JMP: {
+            node_jump_to_label(node, inst);
             break;
         }
         case JEZ: {
+            if (node->ACC == 0) {
+                node_jump_to_label(node, inst);
+            }
             break;
         }
         case JNZ: {
+            if (node->ACC != 0) {
+                node_jump_to_label(node, inst);
+            }
             break;
         }
         case JGZ: {
+            if (node->ACC > 0) {
+                node_jump_to_label(node, inst);
+            }
             break;
         }
         case JLZ: {
+            if (node->ACC < 0) {
+                node_jump_to_label(node, inst);
+            }
             break;
         }
         case JRO: {
@@ -116,10 +188,30 @@ void parse_instruction_manipulation(Node *node, Instruction inst) {
     }
 }
 
+/** Parse an instruction that deal with value movement
+        - Format: <OPCODE> <SRC> <DEST>
+        - Supported OPCodes:
+            1. MOV
+        - Supported SRC Types:
+            1. NUMBER
+            2. PORT
+        - Supported DEST Types:
+            2. PORT
+
+    Note:
+        Using a PORT in SRC will cause the node to become blocking on reading.
+
+*/
 void parse_io_instruction(Node *node, Instruction inst) {
     // Read Data First
     Data src = inst.src;
     int value = 0;
+
+    if (inst.operation != MOV) {
+        printf("Invalid IO Instruction.\n");
+        exit(1);
+    }
+
     switch (src.type) {
         case STRING: {
             printf("parse_io_instruction STRING !! Invalid SRC Value, found STRING\n");
@@ -151,9 +243,10 @@ void parse_io_instruction(Node *node, Instruction inst) {
  */
 void node_init(Node *node) {
     // Init instructions
-    node->instructionList = NULL;
+    node->instructionList = malloc(sizeof(Instruction) * MAX_INSTRUCTIONS);
     node->instructionCount = 0;
     node->instructionPointer = 0;
+    hashmap_create(INIT_MAP_SIZE, &node->labelMap);
 
     // Init registers
     node->ACC = 0;
@@ -178,7 +271,7 @@ void node_execute_instruction(Node *node, Instruction input) {
             break;
         }
         case JMP: case JEZ: case JNZ: case JGZ: case JLZ: case JRO: {
-            parse_instruction_manipulation(node, input);
+            parse_inst_pointer_instruction(node, input);
             break;
         }
         case MOV: {
@@ -203,9 +296,11 @@ void node_advance(Node *node) {
 }
 
 void node_tick(Node *node) {
+    node_execute_instruction(node, node->instructionList[node->instructionPointer]);
+
     node_advance(node);
 
-    if (node->instructionPointer < 0) {
+    if (node->instructionPointer < 0 || node->instructionPointer > node->instructionCount) {
         node->instructionPointer = 0;
     }
 }
@@ -266,4 +361,9 @@ void node_write(Node *node, Port writeTo, int value) {
  */
 void node_cleanup(Node *node) {
     free(node->instructionList);
+    hashmap_destroy(&node->labelMap);
+
+    for (int i = 0; i < PIPE_COUNT; i++) {
+        free(node->connectedPipes[i]);
+    }
 }
