@@ -67,3 +67,4 @@ clean:
 	rm -rf **.log
 	rm -rf build
 	rm -f tsk
+	rm -f test_runner
