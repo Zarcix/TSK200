@@ -1,23 +1,12 @@
 #include <criterion/criterion.h>
-#include <stdio.h>
+
+#include "../test_statics.h"
 
 #include "../../src/tsk/node.h"
 #include "../../src/tsk_misc/tsk_loader.h"
 
-static Node *loader_toTest = NULL;
-
-void loader_math_setup() {
-    loader_toTest = malloc(sizeof(Node));
-}
-
-void loader_math_teardown() {
-    node_cleanup(loader_toTest);
-    free(loader_toTest);
-}
-
-Test(TSK_LOADER_TESTS, MATH, .init=loader_math_setup, .fini=loader_math_teardown) {
-    tsksrc_to_node(loader_toTest, "./test/test_files/tsk_loader/math");
-    
+Test(TSK_LOADER_TESTS, MATH, .init=setup_node, .fini=teardown_node) {
+    tsksrc_to_node(toTest, "./test/test_files/tsk_loader/math");
     OPCode expected_opcodes[] = {
         ADD,
         ADD,
@@ -80,26 +69,26 @@ Test(TSK_LOADER_TESTS, MATH, .init=loader_math_setup, .fini=loader_math_teardown
     };
 
     // General Tests
-    cr_assert(loader_toTest->instructionCount == 11);
+    cr_assert(toTest->instructionCount == 11);
 
-    for (int i = 0; i < loader_toTest->instructionCount; i++) {
+    for (int i = 0; i < toTest->instructionCount; i++) {
         // Ensure opcodes match
-        cr_assert_eq(loader_toTest->instructionList[i].operation, expected_opcodes[i]);
+        cr_assert_eq(toTest->instructionList[i].operation, expected_opcodes[i]);
 
         // Ensure src values match. No dest values are expected since all math instructions have only one arg
-        cr_assert_eq(loader_toTest->instructionList[i].src.type, expected_src[i].type);
+        cr_assert_eq(toTest->instructionList[i].src.type, expected_src[i].type);
 
         switch (expected_src[i].type) {
             case PORT: {
-                cr_assert_eq(loader_toTest->instructionList[i].src.value.dataPort, expected_src[i].value.dataPort);
+                cr_assert_eq(toTest->instructionList[i].src.value.dataPort, expected_src[i].value.dataPort);
                 break;
             }
             case NUMBER: {
-                cr_assert_eq(loader_toTest->instructionList[i].src.value.dataVal, expected_src[i].value.dataVal);
+                cr_assert_eq(toTest->instructionList[i].src.value.dataVal, expected_src[i].value.dataVal);
                 break;
             }
             case STRING: {
-                cr_assert_str_eq(loader_toTest->instructionList[i].src.value.dataStr, expected_src[i].value.dataStr);
+                cr_assert_str_eq(toTest->instructionList[i].src.value.dataStr, expected_src[i].value.dataStr);
                 break;
             }
         }

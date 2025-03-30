@@ -1,24 +1,16 @@
 #include <criterion/criterion.h>
 
+#include "../test_statics.h"
+
 #include "../../src/tsk/node.h"
 #include "../../src/tsk/tsk_constants.h"
 
-static Node *toTest;
 
-void node_init_setup(void) {
-    toTest = malloc(sizeof(Node));
-}
-
-void node_init_teardown(void) {
-    node_cleanup(toTest);
-    free(toTest);
-}
-
-Test(NODE_INIT, EMPTY_INSTRUCTION_LIST, .init=node_init_setup, .fini=node_init_teardown) {
+Test(NODE_INIT, EMPTY_INSTRUCTION_LIST, .init=setup_node, .fini=teardown_node) {
     node_init(toTest);
 
     // Check Instruction Initialization
-    cr_expect_null(toTest->instructionList);
+    cr_expect_not_null(toTest->instructionList);
     cr_expect(toTest->instructionCount == 0);
     cr_expect(toTest->instructionPointer == 0);
 

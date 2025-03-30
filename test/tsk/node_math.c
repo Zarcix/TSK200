@@ -1,30 +1,12 @@
 #include <criterion/criterion.h>
 #include <criterion/assert.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
+
+#include "../test_statics.h"
 
 #include "../../src/tsk/node.h"
 
-static Node *toTest = NULL;
-
-void node_math_setup_null(void) {
-    toTest = malloc(sizeof(Node));
-    node_init(toTest);
-}
-
-void node_math_setup_init_acc(void) {
-    toTest = malloc(sizeof(Node));
-    node_init(toTest);
-    toTest->ACC = 15;
-}
-
-void node_math_teardown(void) {
-    node_cleanup(toTest);
-    free(toTest);
-}
-
-Test(NODE_MATH, NOP_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_teardown) {
+Test(NODE_MATH, NOP_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
     Instruction toExecute;
     toExecute.operation = NOP;
 
@@ -34,7 +16,7 @@ Test(NODE_MATH, NOP_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_t
     cr_expect(toTest->BAK == 0);
 }
 
-Test(NODE_MATH, ADD_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_teardown) {
+Test(NODE_MATH, ADD_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
     Instruction posNumExec;
     posNumExec.operation = ADD;
 
@@ -68,7 +50,7 @@ Test(NODE_MATH, ADD_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_t
 
 }
 
-Test(NODE_MATH, SUB_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_teardown) {
+Test(NODE_MATH, SUB_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
     Instruction posNumExec;
     posNumExec.operation = SUB;
 
@@ -101,7 +83,8 @@ Test(NODE_MATH, SUB_FUNCTIONALITY, .init=node_math_setup_null, .fini=node_math_t
     cr_expect(toTest->ACC == 6);
 }
 
-Test(NODE_MATH, NEG_FUNCTIONALITY, .init=node_math_setup_init_acc, .fini=node_math_teardown) {
+Test(NODE_MATH, NEG_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
+    toTest->ACC = 15;
     Instruction negExec;
     negExec.operation = NEG;
 
