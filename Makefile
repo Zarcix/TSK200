@@ -17,10 +17,10 @@ MSCBLD=build/tsk_misc
 release: CFLAGS += -O3 -g
 release: tsk
 
-debug: CFLAGS += -g
-debug: CFLAGS += -DDEBUG
+debug: CFLAGS += -g -DDEBUG
 debug: tsk
 
+test: CFLAGS += -g -DDEBUG
 test: prebuild utils misc node instruction 
 	$(CC) $(CFLAGS) -o test_runner test/runner.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o -l criterion
 	./test_runner
@@ -28,8 +28,7 @@ test: prebuild utils misc node instruction
 clean:
 	rm -rf **.log
 	rm -rf build
-	rm -f tsk
-	rm -f test_runner
+	rm -f tsk test_runner
 
 ## Sub Commands
 
