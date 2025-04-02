@@ -1,0 +1,5 @@
+JRO 1
+L:
+ADD 5
+NEG
+JRO ACC
