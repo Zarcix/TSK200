@@ -171,14 +171,41 @@ void parse_inst_pointer_instruction(Node *node, Instruction inst) {
             }
             
             int data = 0;
-
             if (src.type == PORT) {
                 data = node_read(node, src.value.dataPort);
             } else if (src.type == NUMBER) {
                 data = src.value.dataVal;
             }
 
+            // Pad since node has to advance after
             node->instructionPointer += data;
+
+            if (node->instructionPointer < 0) {
+                node->instructionPointer = 0;
+                break;
+            }
+
+            if (node->instructionPointer >= node->instructionCount) {
+                node->instructionPointer = node->instructionCount - 1;
+                break;
+            }
+
+            // Skip over labels
+            while (node->instructionList[node->instructionPointer].operation == LABEL) {
+                if (node->instructionPointer < 0) {
+                    node->instructionPointer = 0;
+                    break;
+                }
+
+                if (node->instructionPointer >= node->instructionCount) {
+                    node->instructionPointer = node->instructionCount - 1;
+                    break;
+                }
+
+                int pointerMovement = data < 0 ? -1 : 1;
+                node->instructionPointer += pointerMovement;
+            }
+
             break;
         }
         default: {
@@ -296,20 +323,22 @@ void node_advance(Node *node) {
 }
 
 void node_tick(Node *node) {
+    bool toAdvance = true;
+
+    // JRO handles it's own jumping individually
+    if (node->instructionList[node->instructionPointer].operation == JRO) {
+        toAdvance = false;
+    }
+
     node_execute_instruction(node, node->instructionList[node->instructionPointer]);
 
-    node_advance(node);
+    if (toAdvance) {
+        node_advance(node);
+    }
+
 
     if (node->instructionPointer < 0 || node->instructionPointer >= node->instructionCount) {
         node->instructionPointer = 0;
-    }
-
-    while (node->instructionList[node->instructionPointer].operation == LABEL) {
-        node_advance(node);
-
-        if (node->instructionPointer < 0 || node->instructionPointer >= node->instructionCount) {
-            node->instructionPointer = 0;
-        }
     }
 }
 

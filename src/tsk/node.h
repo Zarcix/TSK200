@@ -16,8 +16,8 @@
 typedef struct NodeStruct {
     // Instructions
     Instruction* instructionList;
-    unsigned int instructionCount;
-    unsigned int instructionPointer;
+    int instructionCount;
+    int instructionPointer;
     struct hashmap_s labelMap;
 
     // Registers
