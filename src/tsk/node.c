@@ -300,8 +300,16 @@ void node_tick(Node *node) {
 
     node_advance(node);
 
-    if (node->instructionPointer < 0 || node->instructionPointer > node->instructionCount) {
+    if (node->instructionPointer < 0 || node->instructionPointer >= node->instructionCount) {
         node->instructionPointer = 0;
+    }
+
+    while (node->instructionList[node->instructionPointer].operation == LABEL) {
+        node_advance(node);
+
+        if (node->instructionPointer < 0 || node->instructionPointer >= node->instructionCount) {
+            node->instructionPointer = 0;
+        }
     }
 }
 
