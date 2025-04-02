@@ -61,9 +61,60 @@ Test(NODE_JUMP, JMP, .init=setup_node, .fini=teardown_node) {
     cr_expect_eq(toTest->instructionPointer, 1);
 }
 
-// Test(NODE_JUMP, JEZ, .init=setup_node, .fini=teardown_node) {
+Test(NODE_JUMP, JEZ, .init=setup_node, .fini=teardown_node) {
+    { // MOV -1 ACC
+        Instruction inst = {
+            .operation=MOV,
 
-// }
+            .src.type=NUMBER,
+            .src.value.dataVal=-1,
+
+            .dest.type=PORT,
+            .dest.value.dataPort=ACC
+        };
+        toTest->instructionList[0] = inst;
+    }
+    { // TOP:
+        char* labelName = strdup("TOP");
+        int* labelLoc = malloc(sizeof(int));
+        *labelLoc = 1;
+        Instruction inst = {
+            .operation=LABEL,
+            .src.type=STRING,
+            .src.value.dataStr=labelName,
+        };
+        hashmap_put(&toTest->labelMap, labelName, strlen(labelName), labelLoc);
+
+        toTest->instructionList[1] = inst;
+    }
+    { // ADD 1
+        Instruction inst = {
+            .operation=ADD,
+
+            .src.type=NUMBER,
+            .src.value.dataVal=1,
+        };
+        toTest->instructionList[2] = inst;
+    }
+    { // JEZ TOP
+        Instruction inst = {
+            .operation=JEZ,
+
+            .src.type=STRING,
+            .src.value.dataStr=strdup("TOP"),
+        };
+        toTest->instructionList[3] = inst;
+    }
+    toTest->instructionCount = 4;
+
+    // If this is not added properly, the rest will not work
+    cr_assert_eq(*(int*)hashmap_get(&toTest->labelMap, "TOP", strlen("TOP")), 1);
+
+    for (int _ = 0; _ < 20; _++) {
+        node_tick(toTest);
+        printf("ACC: %d\n", toTest->ACC);
+    }
+}
 
 // Test(NODE_JUMP, JNZ, .init=setup_node, .fini=teardown_node) {
 
