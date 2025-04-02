@@ -4,6 +4,7 @@
 #include "./tsk/node_init.c"
 #include "./tsk/node_math.c"
 #include "./tsk/node_jump.c"
+#include "./tsk/node_internal.c"
 
 // TSK Loader Tests
 #include "./tsk_loader/loader_math.c"
