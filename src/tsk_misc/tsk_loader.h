@@ -1,5 +1,5 @@
-#ifndef TSK_LOADER
-#define TSK_LOADER
+#ifndef TSK_LOAD
+#define TSK_LOAD
 
 #include <stdlib.h>
 
