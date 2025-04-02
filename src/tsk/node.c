@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 
 #include "./node.h"
 #include "./instruction.h"
@@ -10,7 +11,7 @@
 void node_jump_to_label(Node *node, Instruction instruction) {
     if (instruction.src.type != STRING) {
         printf("Invalid label. Not a string.\n");
-        exit(1);
+        exit(SIGABRT);
     }
 
     char* labelName = instruction.src.value.dataStr;
@@ -18,7 +19,7 @@ void node_jump_to_label(Node *node, Instruction instruction) {
     void* idx_void = hashmap_get(&node->labelMap, labelName, strlen(labelName));
     if (NULL == idx_void) {
         printf("Invalid label name: %s\n", labelName);
-        exit(1);
+        exit(SIGABRT);
     }
 
     unsigned int label_idx = *(unsigned int*)idx_void;
@@ -46,7 +47,7 @@ void parse_math_instruction(Node *node, Instruction inst) {
             Data src = inst.src;
             if (src.type == STRING) {
                 printf("parse_math_instruction ADD !! Invalid SRC, is STRING\n");
-                exit(1);
+                exit(SIGABRT);
             }
             
             int data = 0;
@@ -64,7 +65,7 @@ void parse_math_instruction(Node *node, Instruction inst) {
             Data src = inst.src;
             if (src.type == STRING) {
                 printf("parse_math_instruction SUB !! Invalid SRC, is STRING\n");
-                exit(1);
+                exit(SIGABRT);
             }
             
             int data = 0;
@@ -112,7 +113,7 @@ void parse_node_instruction(Node *node, OPCode opcode) {
         }
         default: {
             printf("parse_node_instruction {-} !! Invalid Instruction: %d\n", opcode);
-            exit(1);
+            exit(SIGABRT);
         }
     }
 }
@@ -167,7 +168,7 @@ void parse_inst_pointer_instruction(Node *node, Instruction inst) {
             Data src = inst.src;
             if (src.type == STRING) {
                 printf("parse_instruction_manipulation JRO !! Invalid SRC, is STRING\n");
-                exit(1);
+                exit(SIGABRT);
             }
             
             int data = 0;
@@ -210,7 +211,7 @@ void parse_inst_pointer_instruction(Node *node, Instruction inst) {
         }
         default: {
             printf("parse_instruction_manipulation {-} !! Invalid Instruction: %d\n", inst.operation);
-            exit(1);
+            exit(SIGABRT);
         }
     }
 }
@@ -236,13 +237,13 @@ void parse_io_instruction(Node *node, Instruction inst) {
 
     if (inst.operation != MOV) {
         printf("Invalid IO Instruction.\n");
-        exit(1);
+        exit(SIGABRT);
     }
 
     switch (src.type) {
         case STRING: {
             printf("parse_io_instruction STRING !! Invalid SRC Value, found STRING\n");
-            exit(1);
+            exit(SIGABRT);
         }
         case NUMBER: {
             value = src.value.dataVal;
@@ -258,7 +259,7 @@ void parse_io_instruction(Node *node, Instruction inst) {
     Data dest = inst.dest;
     if (dest.type != PORT) {
         printf("parse_io_instruction {-} !! Invalid REGISTER\n");
-        exit(1);
+        exit(SIGABRT);
     }
     node_write(node, dest.value.dataPort, value);
 }

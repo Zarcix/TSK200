@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
 #include "./instruction.h"
 
@@ -43,7 +44,7 @@ Data str_to_data(char* str) {
         return strData;
     } else if (*endPtr != '\0') {
         printf("Invalid character: %c\n", *endPtr);
-        exit(1);
+        exit(SIGABRT);
     }
 
     strData.type = NUMBER;

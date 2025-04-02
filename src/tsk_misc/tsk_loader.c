@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 
 #include "./tsk_loader.h"
 
@@ -34,7 +35,7 @@ void read_instructions(Node* node, char *nodeName) {
 
     if (NULL == fd) {
         printf("read_instructions Error !! Failed to read instructions from: %s\n", nodePath);
-        exit(1);
+        exit(SIGABRT);
     }
 
     int instructionCounter = 0;
@@ -51,7 +52,7 @@ void read_instructions(Node* node, char *nodeName) {
             labelSep = strtok(line, ":");
             if (NULL != strstr(labelSep, " ")) {
                 printf("read_instructions Error !! No spaces allowed in label name.");
-                exit(1);
+                exit(SIGABRT);
             }
             
             char *mapKey = strdup(labelSep);
@@ -59,7 +60,7 @@ void read_instructions(Node* node, char *nodeName) {
             *mapVal = instructionCounter;
             if (0 != hashmap_put(&node->labelMap, mapKey, strlen(labelSep), mapVal)) {
                 printf("read_instructions Error !! Unable to add label '%s' to label hashmap", labelSep);
-                exit(1);
+                exit(SIGABRT);
             }
 
             Data src = {
