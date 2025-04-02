@@ -5,7 +5,7 @@
 #include "../../src/tsk/node.h"
 #include "../../src/tsk_misc/tsk_loader.h"
 
-Test(TSK_LOADER_TESTS, LABEL, .init=setup_node, .fini=teardown_node) {
+Test(TSK_LOADER, LABEL, .init=setup_node, .fini=teardown_node) {
     tsksrc_to_node(toTest, "./test/test_files/tsk_loader/jump");
     
     OPCode expected_opcodes[] = {

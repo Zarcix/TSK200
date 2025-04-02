@@ -6,7 +6,7 @@
 #include "../../src/tsk/tsk_constants.h"
 
 
-Test(NODE_INIT, EMPTY_INSTRUCTION_LIST, .init=setup_node, .fini=teardown_node) {
+Test(NODE_FUNCTIONALITY, INIT, .init=setup_node, .fini=teardown_node) {
     node_init(toTest);
 
     // Check Instruction Initialization

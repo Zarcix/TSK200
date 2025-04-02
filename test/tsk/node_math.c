@@ -6,7 +6,7 @@
 
 #include "../../src/tsk/node.h"
 
-Test(NODE_MATH, NOP_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
+Test(NODE_FUNCTIONALITY, NOP, .init=setup_node, .fini=teardown_node) {
     Instruction toExecute;
     toExecute.operation = NOP;
 
@@ -16,7 +16,7 @@ Test(NODE_MATH, NOP_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
     cr_expect(toTest->BAK == 0);
 }
 
-Test(NODE_MATH, ADD_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
+Test(NODE_FUNCTIONALITY, ADD, .init=setup_node, .fini=teardown_node) {
     Instruction posNumExec;
     posNumExec.operation = ADD;
 
@@ -50,7 +50,7 @@ Test(NODE_MATH, ADD_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
 
 }
 
-Test(NODE_MATH, SUB_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
+Test(NODE_FUNCTIONALITY, SUB, .init=setup_node, .fini=teardown_node) {
     Instruction posNumExec;
     posNumExec.operation = SUB;
 
@@ -83,7 +83,7 @@ Test(NODE_MATH, SUB_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
     cr_expect(toTest->ACC == 6);
 }
 
-Test(NODE_MATH, NEG_FUNCTIONALITY, .init=setup_node, .fini=teardown_node) {
+Test(NODE_FUNCTIONALITY, NEG, .init=setup_node, .fini=teardown_node) {
     toTest->ACC = 15;
     Instruction negExec;
     negExec.operation = NEG;

@@ -5,7 +5,7 @@
 #include "../../src/tsk/node.h"
 #include "../../src/tsk_misc/tsk_loader.h"
 
-Test(TSK_LOADER_TESTS, MATH, .init=setup_node, .fini=teardown_node) {
+Test(TSK_LOADER, MATH, .init=setup_node, .fini=teardown_node) {
     tsksrc_to_node(toTest, "./test/test_files/tsk_loader/math");
     OPCode expected_opcodes[] = {
         ADD,

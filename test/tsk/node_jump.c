@@ -6,7 +6,7 @@
 
 #include "../../src/tsk/node.h"
 
-Test(NODE_JUMP, JMP, .init=setup_node, .fini=teardown_node) {
+Test(NODE_FUNCTIONALITY, JMP, .init=setup_node, .fini=teardown_node) {
     // Create label
     Instruction label = {
         .operation=LABEL,
@@ -61,7 +61,7 @@ Test(NODE_JUMP, JMP, .init=setup_node, .fini=teardown_node) {
     cr_expect_eq(toTest->instructionPointer, 1);
 }
 
-Test(NODE_JUMP, JEZ, .init=setup_node, .fini=teardown_node) {
+Test(NODE_FUNCTIONALITY, JEZ, .init=setup_node, .fini=teardown_node) {
     { // MOV -1 ACC
         Instruction inst = {
             .operation=MOV,
@@ -112,8 +112,9 @@ Test(NODE_JUMP, JEZ, .init=setup_node, .fini=teardown_node) {
 
     for (int _ = 0; _ < 20; _++) {
         node_tick(toTest);
-        printf("ACC: %d\n", toTest->ACC);
     }
+    cr_expect_eq(toTest->ACC, 1);
+    cr_expect_eq(toTest->instructionPointer, 0);
 }
 
 // Test(NODE_JUMP, JNZ, .init=setup_node, .fini=teardown_node) {
