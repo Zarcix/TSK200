@@ -437,6 +437,32 @@ void node_write(Node *node, Port writeTo, int value) {
             return;
         }
         case ANY: {
+            int* writeVal = malloc(sizeof(int));
+
+            // Write the same value (same pointer too) to all pipes
+            Pipe* writePipe = NULL;
+            *writeVal = value;
+            for (int i = 0; i < EXTERNAL_PORT_COUNT; i++) {
+                writePipe = node->connectedPipes[i];
+                sem_wait(&writePipe->dataLock);
+                writePipe->data = writeVal;
+                sem_post(&writePipe->dataLock);
+            }
+
+            // Literally just loop forever until a value's been read.
+            // Since all pipes use the same malloc, reading that value will clear all mallocs
+            bool valueRead = false;
+            while (!valueRead) {
+                for (int i = 0; i < EXTERNAL_PORT_COUNT; i++) {
+                    writePipe = node->connectedPipes[i];
+                    sem_wait(&writePipe->dataLock);
+                    valueRead = writePipe->data == NULL;
+                    sem_post(&writePipe->dataLock);
+                    if (valueRead) {
+                        break;
+                    }
+                }
+            }
             break;
         }
         case LEFT: case RIGHT: case UP: case DOWN: {
