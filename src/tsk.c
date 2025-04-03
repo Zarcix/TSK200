@@ -17,7 +17,18 @@ int milliseconds = 250;
 int main(int argc, char **argv) {
     Node *test = malloc(sizeof(Node));
     node_init(test);
+    
     tsksrc_to_node(test, "test");
+
+    Pipe *left = malloc(sizeof(Pipe));
+    Pipe *right = malloc(sizeof(Pipe));
+    Pipe *up = malloc(sizeof(Pipe));
+    Pipe *down = malloc(sizeof(Pipe));
+
+    test->connectedPipes[LEFT] = left;
+    test->connectedPipes[RIGHT] = right;
+    test->connectedPipes[UP] = up;
+    test->connectedPipes[DOWN] = down;
 
     struct timespec ts;
     ts.tv_sec = milliseconds / 1000;

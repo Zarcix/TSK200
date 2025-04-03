@@ -357,8 +357,51 @@ int node_read(Node *node, Port readFrom) {
             return 0;
         }
         case LAST: {
+            if (node->LAST == LAST) {
+                printf("Loop detected. LAST port is LAST");
+                exit(SIGABRT);
+            }
             int val = node_read(node, node->LAST);
             return val;
+        }
+        case ANY: {
+            int listSize = 4;
+            Port portList[] = {
+                LEFT,
+                RIGHT,
+                UP,
+                DOWN
+            };
+
+            bool dataFound = false;
+            Pipe *pipePtr = NULL;
+
+            while (!dataFound) {
+                for (int i = 0; i < listSize; i++) {
+                    pipePtr = node->connectedPipes[portList[i]];
+
+                    if (NULL == pipePtr || !pipePtr->hasData) {
+                        continue;
+                    }
+
+                    dataFound = true;
+                    value = pipePtr->data;
+                    pipePtr->hasData = false;
+                }
+            }
+            break;
+        }
+        case LEFT: case RIGHT: case UP: case DOWN: {
+            Pipe* pipePtr = node->connectedPipes[readFrom];
+
+            // Loop forever when data is not available
+            while (NULL == pipePtr);
+
+            while (false == pipePtr->hasData);
+
+            value = pipePtr->data;
+            pipePtr->hasData = false;
+            break;
         }
         default: {
         }
