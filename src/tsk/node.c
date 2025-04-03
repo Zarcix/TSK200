@@ -358,35 +358,33 @@ int node_read(Node *node, Port readFrom) {
         }
         case LAST: {
             if (node->LAST == LAST) {
-                printf("Loop detected. LAST port is LAST");
+                printf("Loop detected on READ. LAST port is LAST");
                 exit(SIGABRT);
             }
             int val = node_read(node, node->LAST);
             return val;
         }
         case ANY: {
-            int listSize = 4;
-            Port portList[] = {
-                LEFT,
-                RIGHT,
-                UP,
-                DOWN
-            };
-
             bool dataFound = false;
             Pipe *pipePtr = NULL;
 
             while (!dataFound) {
-                for (int i = 0; i < listSize; i++) {
-                    pipePtr = node->connectedPipes[portList[i]];
+                for (int i = 0; i < EXTERNAL_PORT_COUNT; i++) {
+                    pipePtr = node->connectedPipes[EXTERNAL_PORT_LIST[i]];
 
-                    if (NULL == pipePtr || !pipePtr->hasData) {
+                    if (NULL == pipePtr) {
                         continue;
                     }
 
+                    sem_wait(&pipePtr->dataLock);
+                    if (NULL == pipePtr->data) {
+                        sem_post(&pipePtr->dataLock);
+                        continue;
+                    }
                     dataFound = true;
-                    value = pipePtr->data;
-                    pipePtr->hasData = false;
+                    value = *pipePtr->data;
+                    free(pipePtr->data);
+                    sem_post(&pipePtr->dataLock);
                 }
             }
             break;
@@ -397,10 +395,15 @@ int node_read(Node *node, Port readFrom) {
             // Loop forever when data is not available
             while (NULL == pipePtr);
 
-            while (false == pipePtr->hasData);
+            sem_wait(&pipePtr->dataLock);
+            while (NULL == pipePtr->data) {
+                sem_post(&pipePtr->dataLock);
+                sem_wait(&pipePtr->dataLock);
+            }
 
-            value = pipePtr->data;
-            pipePtr->hasData = false;
+            value = *pipePtr->data;
+            free(pipePtr->data);
+            sem_post(&pipePtr->dataLock);
             break;
         }
         default: {
@@ -426,8 +429,18 @@ void node_write(Node *node, Port writeTo, int value) {
             return;
         }
         case LAST: {
+            if (node->LAST == LAST) {
+                printf("Loop detected on WRITE. LAST port is LAST");
+                exit(SIGABRT);
+            }
             node_write(node, node->LAST, value);
             return;
+        }
+        case ANY: {
+            break;
+        }
+        case LEFT: case RIGHT: case UP: case DOWN: {
+            break;
         }
         default: {
         }

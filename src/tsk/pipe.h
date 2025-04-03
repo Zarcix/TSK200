@@ -1,7 +1,9 @@
+#include <semaphore.h>
+
 /**
     A connection between two nodes.
 */
 typedef struct {
-    volatile int data;
-    volatile bool hasData;
+    int* data;
+    sem_t dataLock;
 } Pipe;

@@ -77,6 +77,14 @@ typedef enum {
 	ACC,
 } Port;
 
+static const Port EXTERNAL_PORT_LIST[] = {
+	LEFT,
+	RIGHT,
+	UP,
+	DOWN
+};
+
+static const int EXTERNAL_PORT_COUNT = 4;
 
 static const char *PORT_AS_STR[] = {
 	"LEFT",
