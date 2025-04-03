@@ -21,9 +21,13 @@ int main(int argc, char **argv) {
     tsksrc_to_node(test, "test");
 
     Pipe *left = malloc(sizeof(Pipe));
+    sem_init(&left->dataLock, 0, 1);
     Pipe *right = malloc(sizeof(Pipe));
+    sem_init(&right->dataLock, 0, 1);
     Pipe *up = malloc(sizeof(Pipe));
+    sem_init(&up->dataLock, 0, 1);
     Pipe *down = malloc(sizeof(Pipe));
+    sem_init(&down->dataLock, 0, 1);
 
     test->connectedPipes[LEFT] = left;
     test->connectedPipes[RIGHT] = right;
