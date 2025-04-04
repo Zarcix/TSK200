@@ -51,3 +51,4 @@ Data str_to_data(char* str) {
     strData.value.dataVal = potentialVal;
     return strData;
 }
+

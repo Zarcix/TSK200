@@ -512,3 +512,4 @@ void node_cleanup(Node *node) {
         free(node->writePipes[i]);
     }
 }
+

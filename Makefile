@@ -1,7 +1,7 @@
 ### Constants ###
 
 CC=clang
-CFLAGS=-std=gnu23 -Wall
+CFLAGS=-std=gnu23 -Wall -Wpedantic
 
 TSKSRC=src/tsk
 TSKBLD=build/tsk

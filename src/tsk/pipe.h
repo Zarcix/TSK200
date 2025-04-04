@@ -7,3 +7,4 @@ typedef struct {
     int* data;
     sem_t dataLock;
 } Pipe;
+
