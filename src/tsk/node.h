@@ -25,7 +25,8 @@ typedef struct NodeStruct {
     int BAK;
 
     // Pipes
-    Pipe* connectedPipes[PIPE_COUNT];
+    Pipe* readPipes[PIPE_COUNT];
+    Pipe* writePipes[PIPE_COUNT];
 
     // Psuedo Memory
     Port LAST;

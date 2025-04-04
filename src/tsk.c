@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <argp.h>
+#include <threads.h>
 #include <time.h>
+
 #include "./tsk/node.h"
 #include "./tsk_misc/tsk_loader.h"
 
@@ -14,33 +16,91 @@ static int NODE_MAX_OUTPUTS = 0;
 static int TICK_DELAY = 0;
 int milliseconds = 250;
 
-int main(int argc, char **argv) {
-    Node *test = malloc(sizeof(Node));
-    node_init(test);
-    
-    tsksrc_to_node(test, "test");
+typedef struct {
+    Node* node;
+    char name[MAX_STR_SIZE];
+    int exitACC;
+} threadArgs;
 
-    Pipe *left = malloc(sizeof(Pipe));
-    sem_init(&left->dataLock, 0, 1);
-    Pipe *right = malloc(sizeof(Pipe));
-    sem_init(&right->dataLock, 0, 1);
-    Pipe *up = malloc(sizeof(Pipe));
-    sem_init(&up->dataLock, 0, 1);
-    Pipe *down = malloc(sizeof(Pipe));
-    sem_init(&down->dataLock, 0, 1);
-
-    test->connectedPipes[LEFT] = left;
-    test->connectedPipes[RIGHT] = right;
-    test->connectedPipes[UP] = up;
-    test->connectedPipes[DOWN] = down;
-
+int run_node(void* arg) {
     struct timespec ts;
     ts.tv_sec = milliseconds / 1000;
     ts.tv_nsec = (milliseconds % 1000) * 1000000;
 
-    while (1) {
-        node_tick(test);
-        printf("Res: %d\n", test->ACC);
+    threadArgs *args = (threadArgs*)arg;
+    Node* node = args->node;
+    char* name = args->name;
+    int exitNum = args->exitACC;
+    int exitVal = 0;
+
+    while (node->ACC != exitNum) {
+        printf("Node '%s' | IP: %d | ACC: %d\n", name, node->instructionPointer, node->ACC);
+        exitVal = node->ACC;
+        node_tick(node);
         nanosleep(&ts, NULL);
     }
+
+    printf("Node '%s' | Node Exiting | Exit Val: %d\n", name, exitVal);
+
+    return 0;
+}
+
+int main(int argc, char **argv) {
+    Node *left = malloc(sizeof(Node));
+    Node *right = malloc(sizeof(Node));
+    Node *down = malloc(sizeof(Node));
+    node_init(left);
+    node_init(right);
+    node_init(down);
+
+    tsksrc_to_node(left, "left");
+    tsksrc_to_node(right, "right");
+    tsksrc_to_node(down, "down");
+    
+    Pipe topPipe = {.data=NULL}, bottomPipe = {.data=NULL}, vertLeftPipe = {.data=NULL}, vertRightPipe = {.data=NULL};
+    sem_init(&topPipe.dataLock, 0, 1);
+    sem_init(&bottomPipe.dataLock, 0, 1);
+    sem_init(&vertLeftPipe.dataLock, 0, 1);
+    sem_init(&vertRightPipe.dataLock, 0, 1);
+
+    left->writePipes[RIGHT] = &topPipe;
+    left->readPipes[RIGHT] = &bottomPipe;
+    right->readPipes[LEFT] = &topPipe;
+    right->writePipes[LEFT] = &bottomPipe;
+
+    left->writePipes[DOWN] = &vertRightPipe;
+    left->readPipes[DOWN] = &vertLeftPipe;
+    down->readPipes[UP] = &vertRightPipe;
+    down->writePipes[UP] = &vertLeftPipe;
+    
+
+    threadArgs leftArg = {
+        .node=left,
+        .name="Left",
+        .exitACC=100
+    };
+
+    threadArgs rightArg = {
+        .node=right,
+        .name="Right",
+        .exitACC=100
+    };
+    
+    threadArgs downArg = {
+        .node=down,
+        .name="Down",
+        .exitACC=100
+    };
+
+    thrd_t leftThrd, rightThrd, downThrd;
+
+    thrd_create(&leftThrd, run_node, &leftArg);
+    thrd_create(&rightThrd, run_node, &rightArg);
+    thrd_create(&downThrd, run_node, &downArg);
+
+    thrd_join(leftThrd, NULL);
+    thrd_join(rightThrd, NULL);
+    thrd_join(downThrd, NULL);
+
+    return 0;
 }

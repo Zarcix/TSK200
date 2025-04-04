@@ -283,7 +283,8 @@ void node_init(Node *node) {
 
     // Init ports
     for (int i = 0; i < PIPE_COUNT; i++) {
-        node->connectedPipes[i] = NULL;
+        node->readPipes[i] = NULL;
+        node->writePipes[i] = NULL;
     }
 }
 
@@ -370,7 +371,7 @@ int node_read(Node *node, Port readFrom) {
 
             while (!dataFound) {
                 for (int i = 0; i < EXTERNAL_PORT_COUNT; i++) {
-                    pipePtr = node->connectedPipes[EXTERNAL_PORT_LIST[i]];
+                    pipePtr = node->readPipes[EXTERNAL_PORT_LIST[i]];
 
                     if (NULL == pipePtr) {
                         continue;
@@ -384,13 +385,14 @@ int node_read(Node *node, Port readFrom) {
                     dataFound = true;
                     value = *pipePtr->data;
                     free(pipePtr->data);
+                    pipePtr->data = NULL;
                     sem_post(&pipePtr->dataLock);
                 }
             }
             break;
         }
         case LEFT: case RIGHT: case UP: case DOWN: {
-            Pipe* pipePtr = node->connectedPipes[readFrom];
+            Pipe* pipePtr = node->readPipes[readFrom];
 
             // Loop forever when data is not available
             while (NULL == pipePtr);
@@ -403,6 +405,7 @@ int node_read(Node *node, Port readFrom) {
 
             value = *pipePtr->data;
             free(pipePtr->data);
+            pipePtr->data = NULL;
             sem_post(&pipePtr->dataLock);
             break;
         }
@@ -443,7 +446,8 @@ void node_write(Node *node, Port writeTo, int value) {
             Pipe* writePipe = NULL;
             *writeVal = value;
             for (int i = 0; i < EXTERNAL_PORT_COUNT; i++) {
-                writePipe = node->connectedPipes[i];
+                writePipe = node->writePipes[i];
+                if (NULL == writePipe) continue;
                 sem_wait(&writePipe->dataLock);
                 writePipe->data = writeVal;
                 sem_post(&writePipe->dataLock);
@@ -454,7 +458,8 @@ void node_write(Node *node, Port writeTo, int value) {
             bool valueRead = false;
             while (!valueRead) {
                 for (int i = 0; i < EXTERNAL_PORT_COUNT; i++) {
-                    writePipe = node->connectedPipes[i];
+                    writePipe = node->writePipes[i];
+                    if (NULL == writePipe) continue;
                     sem_wait(&writePipe->dataLock);
                     valueRead = writePipe->data == NULL;
                     sem_post(&writePipe->dataLock);
@@ -466,6 +471,25 @@ void node_write(Node *node, Port writeTo, int value) {
             break;
         }
         case LEFT: case RIGHT: case UP: case DOWN: {
+            Pipe *writePipe = node->writePipes[writeTo];
+
+            // Loop forever when writing to an invalid pipe
+            while (NULL == writePipe);
+
+            int* writeVal = malloc(sizeof(int));
+            *writeVal = value;
+
+            sem_wait(&writePipe->dataLock);
+            writePipe->data = writeVal;
+            sem_post(&writePipe->dataLock);
+
+            // Function only exits when data has been read
+            bool valueRead = false;
+            while (!valueRead) {
+                sem_wait(&writePipe->dataLock);
+                valueRead = writePipe->data == NULL;
+                sem_post(&writePipe->dataLock);
+            }
             break;
         }
         default: {
@@ -484,6 +508,7 @@ void node_cleanup(Node *node) {
     hashmap_destroy(&node->labelMap);
 
     for (int i = 0; i < PIPE_COUNT; i++) {
-        free(node->connectedPipes[i]);
+        free(node->readPipes[i]);
+        free(node->writePipes[i]);
     }
 }
