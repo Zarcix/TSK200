@@ -26,6 +26,7 @@ Test(NODE_FUNCTIONALITY, INIT, .init=setup_node, .fini=teardown_node) {
 
     // Check Port Initialization
     for (int i = 0; i < PIPE_COUNT; i++) {
-        cr_expect_null(toTest->connectedPipes[i]);
+        cr_expect_null(toTest->readPipes[i]);
+        cr_expect_null(toTest->writePipes[i]);
     }
 }
