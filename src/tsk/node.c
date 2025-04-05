@@ -313,7 +313,6 @@ void node_execute_instruction(Node *node, Instruction input) {
             break;
         }
         case EXT: {
-            printf("Terminating\n");
             thrd_exit(SIGTERM);
             break;
         }

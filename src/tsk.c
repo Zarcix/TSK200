@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <argp.h>
 #include <threads.h>
 #include <time.h>
