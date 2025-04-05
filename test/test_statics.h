@@ -15,4 +15,22 @@ static void teardown_node() {
     free(toTest);
 }
 
+typedef struct {
+    Node* node;
+    char name[MAX_STR_SIZE];
+} threadArgs;
+
+static int run_node(void* arg) {
+    threadArgs *args = (threadArgs*)arg;
+    Node* node = args->node;
+    char* name = args->name;
+
+    while (true) {
+        node_tick(node);
+    }
+
+    return 0;
+}
+
+
 #endif
