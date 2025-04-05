@@ -29,6 +29,9 @@ typedef enum {
 	// Movement
 	MOV,
 	LABEL,
+
+	// Other
+	EXT,
 } OPCode;
 
 static const char* OPCODE_AS_STR[] = {
@@ -45,10 +48,11 @@ static const char* OPCODE_AS_STR[] = {
 	"SAV",
 	"SWP",
 	"MOV",
-	"OPLBL"
+	"LABEL",
+	"EXT"
 };
 
-static const int OPCODE_COUNT = 14;
+static const int OPCODE_COUNT = 15;
 
 /**
  * Ports for a given operation

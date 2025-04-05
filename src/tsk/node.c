@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <threads.h>
 
 #include "./node.h"
 #include "./instruction.h"
@@ -309,6 +310,11 @@ void node_execute_instruction(Node *node, Instruction input) {
         }
         case SWP: case SAV: {
             parse_node_instruction(node, input.operation);
+            break;
+        }
+        case EXT: {
+            printf("Terminating\n");
+            thrd_exit(SIGTERM);
             break;
         }
         case LABEL: default: {

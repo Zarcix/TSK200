@@ -19,7 +19,6 @@ int milliseconds = 250;
 typedef struct {
     Node* node;
     char name[MAX_STR_SIZE];
-    int exitACC;
 } threadArgs;
 
 int run_node(void* arg) {
@@ -30,17 +29,14 @@ int run_node(void* arg) {
     threadArgs *args = (threadArgs*)arg;
     Node* node = args->node;
     char* name = args->name;
-    int exitNum = args->exitACC;
     int exitVal = 0;
 
-    while (node->ACC != exitNum) {
+    while (true) {
         printf("Node '%s' | IP: %d | ACC: %d\n", name, node->instructionPointer, node->ACC);
         exitVal = node->ACC;
         node_tick(node);
         nanosleep(&ts, NULL);
     }
-
-    printf("Node '%s' | Node Exiting | Exit Val: %d\n", name, exitVal);
 
     return 0;
 }
@@ -77,19 +73,16 @@ int main(int argc, char **argv) {
     threadArgs leftArg = {
         .node=left,
         .name="Left",
-        .exitACC=100
     };
 
     threadArgs rightArg = {
         .node=right,
         .name="Right",
-        .exitACC=100
     };
     
     threadArgs downArg = {
         .node=down,
         .name="Down",
-        .exitACC=100
     };
 
     thrd_t leftThrd, rightThrd, downThrd;
