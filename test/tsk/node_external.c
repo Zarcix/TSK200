@@ -45,12 +45,46 @@ Test(NODE_FUNCTIONALITY, WRITE_ACC, .init=setup_node, .fini=teardown_node, .time
     cr_expect_eq(res, SIGTERM);
 
     cr_expect_eq(toTest->ACC, movVal);
-
-
 }
 
-Test(NODE_FUNCTIONALITY, WRITE_NIL, .timeout=5) {
-    
+Test(NODE_FUNCTIONALITY, WRITE_NIL, .init=setup_node, .fini=teardown_node, .timeout=5) {
+    int movVal = 20;
+    { // Node Instructions
+        { // MOV 20 ACC
+            Instruction inst = {
+                .operation=MOV,
+                
+                .src.type=NUMBER,
+                .src.value.dataVal=movVal,
+
+                .dest.type=PORT,
+                .dest.value.dataPort=NIL,
+            };
+            toTest->instructionList[0] = inst;
+        }
+        { // EXT
+            Instruction inst = {
+                .operation=EXT
+            };
+            toTest->instructionList[1] = inst;
+        }
+        toTest->instructionCount = 2;
+    }
+    thrd_t testThrd;
+
+    threadArgs nodeArgs = {
+        toTest,
+    };
+
+    cr_expect_neq(toTest->ACC, movVal);
+
+    thrd_create(&testThrd, run_node, &nodeArgs);
+
+    int res = 0;
+    thrd_join(testThrd, &res);
+    cr_expect_eq(res, SIGTERM);
+
+    cr_expect_neq(toTest->ACC, movVal);
 }
 
 Test(NODE_FUNCTIONALITY, WRITE_LAST, .timeout=5) {
