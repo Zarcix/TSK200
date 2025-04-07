@@ -17,13 +17,11 @@ static void teardown_node() {
 
 typedef struct {
     Node* node;
-    char name[MAX_STR_SIZE];
 } threadArgs;
 
 static int run_node(void* arg) {
     threadArgs *args = (threadArgs*)arg;
     Node* node = args->node;
-    char* name = args->name;
 
     while (true) {
         node_tick(node);
