@@ -88,7 +88,6 @@ Test(NODE_FUNCTIONALITY, WRITE_NIL, .init=setup_node, .fini=teardown_node, .time
 }
 
 Test(NODE_FUNCTIONALITY, WRITE_LAST, .timeout=5) {
-    
 }
 
 Test(NODE_FUNCTIONALITY, WRITE_ANY, .timeout=5) {
@@ -524,7 +523,135 @@ Test(NODE_FUNCTIONALITY, READ_NIL, .timeout=5) {
 }
 
 Test(NODE_FUNCTIONALITY, READ_LAST, .timeout=5) {
+    Node node1, node2;
+    node_init(&node1);
+    node_init(&node2);
+
+    Pipe topPipe = {.data=NULL}, bottomPipe = {.data=NULL};
+    sem_init(&topPipe.dataLock, 0, 1);
+    sem_init(&bottomPipe.dataLock, 0, 1);
+
+    node1.writePipes[RIGHT] = &topPipe;
+    node2.readPipes[LEFT] = &topPipe;
+
+    node2.writePipes[LEFT] = &bottomPipe;
+    node1.readPipes[RIGHT] = &bottomPipe;
     
+    { // Node 1
+        {
+            Instruction inst = {
+                .operation=MOV,
+
+                .src.type=NUMBER,
+                .src.value.dataVal=5,
+
+                .dest.type=PORT,
+                .dest.value.dataPort=RIGHT
+            };
+            node1.instructionList[0] = inst;
+        }
+        {
+            Instruction inst = {
+                .operation=MOV,
+
+                .src.type=NUMBER,
+                .src.value.dataVal=10,
+
+                .dest.type=PORT,
+                .dest.value.dataPort=RIGHT
+            };
+            node1.instructionList[1] = inst;
+        }
+        {
+            Instruction inst = {
+                .operation=EXT,
+            };
+            node1.instructionList[2] = inst;
+        }
+        node1.instructionCount = 3;
+    }
+    { // Node 2
+        {
+            Instruction inst = {
+                .operation=MOV,
+
+                .src.type=NUMBER,
+                .src.value.dataVal=5,
+
+                .dest.type=PORT,
+                .dest.value.dataPort=ACC
+            };
+            node2.instructionList[0] = inst;
+        }
+        {
+            Instruction inst = {
+                .operation=MOV,
+
+                .src.type=PORT,
+                .src.value.dataPort=LAST,
+
+                .dest.type=PORT,
+                .dest.value.dataPort=ACC
+            };
+            node2.instructionList[1] = inst;
+        }
+        {
+            Instruction inst = {
+                .operation=MOV,
+
+                .src.type=PORT,
+                .src.value.dataPort=ANY,
+
+                .dest.type=PORT,
+                .dest.value.dataPort=ACC
+            };
+            node2.instructionList[2] = inst;
+        }
+        {
+            Instruction inst = {
+                .operation=MOV,
+
+                .src.type=PORT,
+                .src.value.dataPort=LAST,
+
+                .dest.type=PORT,
+                .dest.value.dataPort=ACC
+            };
+            node2.instructionList[3] = inst;
+        }
+        {
+            Instruction inst = {
+                .operation=EXT,
+            };
+            node2.instructionList[4] = inst;
+        }
+        node2.instructionCount = 5;
+    }
+
+    // Start threads for nodes
+    thrd_t node1Thrd, node2Thrd;
+
+    threadArgs node1Args = {
+        .node=&node1,
+    };
+
+    threadArgs node2Args = {
+        .node=&node2,
+    };
+
+    thrd_create(&node1Thrd, run_node, &node1Args);
+    thrd_create(&node2Thrd, run_node, &node2Args);
+
+    int res = 0;
+    thrd_join(node1Thrd, &res);
+    cr_expect_eq(res, SIGTERM);
+    thrd_join(node2Thrd, &res);
+    cr_expect_eq(res, SIGTERM);
+
+    // Check all nodes
+    cr_expect_eq(node1.instructionPointer, 2);
+    cr_expect_eq(node2.instructionPointer, 4);
+    cr_expect_eq(node2.ACC, 10);
 }
 
 Test(NODE_FUNCTIONALITY, READ_ANY, .timeout=5) {

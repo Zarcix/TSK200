@@ -392,6 +392,7 @@ int node_read(Node *node, Port readFrom) {
                     free(pipePtr->data);
                     pipePtr->data = NULL;
                     sem_post(&pipePtr->dataLock);
+                    node->LAST = EXTERNAL_PORT_LIST[i];
                 }
             }
             break;
