@@ -389,7 +389,6 @@ int node_read(Node *node, Port readFrom) {
                     }
                     dataFound = true;
                     value = *pipePtr->data;
-                    free(pipePtr->data);
                     pipePtr->data = NULL;
                     sem_post(&pipePtr->dataLock);
                     node->LAST = EXTERNAL_PORT_LIST[i];
@@ -410,7 +409,6 @@ int node_read(Node *node, Port readFrom) {
             }
 
             value = *pipePtr->data;
-            free(pipePtr->data);
             pipePtr->data = NULL;
             sem_post(&pipePtr->dataLock);
             break;
@@ -468,12 +466,14 @@ void node_write(Node *node, Port writeTo, int value) {
                     if (NULL == writePipe) continue;
                     sem_wait(&writePipe->dataLock);
                     valueRead = writePipe->data == NULL;
+                    node->LAST = EXTERNAL_PORT_LIST[i];
                     sem_post(&writePipe->dataLock);
                     if (valueRead) {
                         break;
                     }
                 }
             }
+            free(writeVal);
             break;
         }
         case LEFT: case RIGHT: case UP: case DOWN: {
@@ -496,6 +496,7 @@ void node_write(Node *node, Port writeTo, int value) {
                 valueRead = writePipe->data == NULL;
                 sem_post(&writePipe->dataLock);
             }
+            free(writeVal);
             break;
         }
         default: {
@@ -512,10 +513,5 @@ void node_write(Node *node, Port writeTo, int value) {
 void node_cleanup(Node *node) {
     free(node->instructionList);
     hashmap_destroy(&node->labelMap);
-
-    for (int i = 0; i < PIPE_COUNT; i++) {
-        free(node->readPipes[i]);
-        free(node->writePipes[i]);
-    }
 }
 
