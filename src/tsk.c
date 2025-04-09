@@ -41,58 +41,51 @@ int run_node(void* arg) {
 }
 
 int main(int argc, char **argv) {
-    Node *left = malloc(sizeof(Node));
-    Node *right = malloc(sizeof(Node));
-    Node *down = malloc(sizeof(Node));
-    node_init(left);
-    node_init(right);
-    node_init(down);
+    Node left;
+    Node right;
+    node_init(&left);
+    node_init(&right);
 
-    tsksrc_to_node(left, "left");
-    tsksrc_to_node(right, "right");
-    tsksrc_to_node(down, "down");
+    tsksrc_to_node(&left, "left");
+    tsksrc_to_node(&right, "right");
     
-    Pipe topPipe = {.data=NULL}, bottomPipe = {.data=NULL}, vertLeftPipe = {.data=NULL}, vertRightPipe = {.data=NULL};
-    sem_init(&topPipe.dataLock, 0, 1);
-    sem_init(&bottomPipe.dataLock, 0, 1);
-    sem_init(&vertLeftPipe.dataLock, 0, 1);
-    sem_init(&vertRightPipe.dataLock, 0, 1);
+    Pipe *topPipe = malloc(sizeof(Pipe));
+    topPipe->data = NULL;
 
-    left->writePipes[RIGHT] = &topPipe;
-    left->readPipes[RIGHT] = &bottomPipe;
-    right->readPipes[LEFT] = &topPipe;
-    right->writePipes[LEFT] = &bottomPipe;
+    Pipe *bottomPipe = malloc(sizeof(Pipe));
+    topPipe->data = NULL;
 
-    left->writePipes[DOWN] = &vertRightPipe;
-    left->readPipes[DOWN] = &vertLeftPipe;
-    down->readPipes[UP] = &vertRightPipe;
-    down->writePipes[UP] = &vertLeftPipe;
-    
+    sem_init(&topPipe->dataLock, 0, 1);
+    sem_init(&bottomPipe->dataLock, 0, 1);
+
+    left.writePipes[RIGHT] = topPipe;
+    left.readPipes[RIGHT] = bottomPipe;
+    right.readPipes[LEFT] = topPipe;
+    right.writePipes[LEFT] = bottomPipe;
 
     threadArgs leftArg = {
-        .node=left,
+        .node=&left,
         .name="Left",
     };
 
     threadArgs rightArg = {
-        .node=right,
+        .node=&right,
         .name="Right",
     };
-    
-    threadArgs downArg = {
-        .node=down,
-        .name="Down",
-    };
 
-    thrd_t leftThrd, rightThrd, downThrd;
+    thrd_t leftThrd, rightThrd;
 
     thrd_create(&leftThrd, run_node, &leftArg);
     thrd_create(&rightThrd, run_node, &rightArg);
-    thrd_create(&downThrd, run_node, &downArg);
 
     thrd_join(leftThrd, NULL);
     thrd_join(rightThrd, NULL);
-    thrd_join(downThrd, NULL);
+
+    node_cleanup(&left);
+    node_cleanup(&right);
+
+    free(topPipe);
+    free(bottomPipe);
 
     return 0;
 }
