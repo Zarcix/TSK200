@@ -29,12 +29,10 @@ void read_next_line(FILE *fd, char *section) {
 
 void read_instructions(Node* node, char *nodeName) {
     // Read Node File
-    char nodePath[MAX_STR_SIZE];
-    sprintf(nodePath, "%s.tsk", nodeName);
-    FILE *fd = fopen(nodePath, "r");
+    FILE *fd = fopen(nodeName, "r");
 
     if (NULL == fd) {
-        printf("read_instructions Error !! Failed to read instructions from: %s\n", nodePath);
+        printf("read_instructions Error !! Failed to read instructions from: %s\n", nodeName);
         exit(SIGABRT);
     }
 

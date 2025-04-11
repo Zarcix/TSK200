@@ -4,43 +4,52 @@
 #include <threads.h>
 #include <time.h>
 
+#include "./constants.h"
+#include "./args.c"
+
 #include "./tsk/node.h"
 #include "./tsk_misc/tsk_loader.h"
-
-const int PARSABLE_ARGS = 3;
-
-static char* COMMAND_PATH = "";
-
-static int NODE_MAX_OUTPUTS = 0;
-static int TICK_DELAY = 0;
-int milliseconds = 250;
+#include "utils/hashmap.h"
 
 typedef struct {
     Node* node;
-    char name[MAX_STR_SIZE];
+    char* name;
 } threadArgs;
 
 int run_node(void* arg) {
-    struct timespec ts;
-    ts.tv_sec = milliseconds / 1000;
-    ts.tv_nsec = (milliseconds % 1000) * 1000000;
-
     threadArgs *args = (threadArgs*)arg;
     Node* node = args->node;
     char* name = args->name;
-    int exitVal = 0;
 
     while (true) {
-        printf("Node '%s' | IP: %d | ACC: %d\n", name, node->instructionPointer, node->ACC);
-        exitVal = node->ACC;
+        if (NODE_OUTPUT) {
+            printf("Node '%s' | IP: %d | ACC: %d\n", name, node->instructionPointer, node->ACC);
+        }
         node_tick(node);
-        nanosleep(&ts, NULL);
     }
 
     return 0;
 }
 
+int init_nodes(void* const context, struct hashmap_element_s* const e) {
+    Node* node = (Node*) e->data;
+    char* nodeName = (char*) e->key;
+    tsksrc_to_node(node, nodeName);
+    return 0;
+}
+
+int link_nodes(void* const context, struct hashmap_element_s* const e) {
+    return 0;
+}
+
 int main(int argc, char **argv) {
+    parse_args(argc, argv);
+
+    struct hashmap_element_s* const temp = NULL;
+    hashmap_iterate_pairs(&NODE_MAPS, init_nodes, temp);
+    hashmap_iterate_pairs(&NODE_MAPS, link_nodes, temp);
+
+    return 0;
     Node left;
     Node right;
     node_init(&left);
