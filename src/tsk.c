@@ -39,6 +39,7 @@ int init_nodes(void* const context, struct hashmap_element_s* const e) {
 }
 
 int link_nodes(void* const context, struct hashmap_element_s* const e) {
+    printf("Node: '%s'\n", (char*)e->key);
     return 0;
 }
 
@@ -48,6 +49,8 @@ int main(int argc, char **argv) {
     struct hashmap_element_s* const temp = NULL;
     hashmap_iterate_pairs(&NODE_MAPS, init_nodes, temp);
     hashmap_iterate_pairs(&NODE_MAPS, link_nodes, temp);
+
+    Node* node = (Node*)hashmap_get(&NODE_MAPS, "nodeA", strlen("nodeA"));
 
     return 0;
     Node left;

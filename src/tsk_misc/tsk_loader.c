@@ -110,7 +110,9 @@ void read_topology(FILE *fd) {
 
 /* Public Functions */
 
-void tsksrc_to_node(Node* node, char* filename) {
-    read_instructions(node, filename);
+void tsksrc_to_node(Node* node, char* nodeName) {
+    char topoPath[MAX_STR_SIZE];
+    sprintf(topoPath, "%s.tsk", nodeName);
+    read_instructions(node, topoPath);
 }
 

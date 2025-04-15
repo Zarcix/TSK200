@@ -1,4 +1,6 @@
 #include <argp.h>
+#include <string.h>
+#include <libgen.h>
 
 #include "./constants.h"
 
@@ -18,7 +20,12 @@ static int parse_opt(int key, char* arg, struct argp_state *state) {
         case ARGP_KEY_ARG: {
             Node *currentNode = malloc(sizeof(Node));
             node_init(currentNode);
-            hashmap_put(&NODE_MAPS, strdup(arg), strlen(arg), currentNode);
+            
+            int nameLength = strcspn(arg, ".");
+            char nodeName[nameLength];
+            strncpy(nodeName, arg, nameLength);
+
+            hashmap_put(&NODE_MAPS, strdup(nodeName), strlen(nodeName), currentNode);
             break;
         }
     }
