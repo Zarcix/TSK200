@@ -22,10 +22,11 @@ static int parse_opt(int key, char* arg, struct argp_state *state) {
             node_init(currentNode);
             
             int nameLength = strcspn(arg, ".");
-            char nodeName[nameLength];
+            char nodeName[nameLength + 1];
             strncpy(nodeName, arg, nameLength);
+            nodeName[nameLength] = '\0';
 
-            hashmap_put(&NODE_MAPS, strndup(nodeName, nameLength), nameLength, currentNode);
+            hashmap_put(&NODE_MAPS, strdup(nodeName), nameLength + 1, currentNode);
             break;
         }
     }
