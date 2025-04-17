@@ -25,7 +25,7 @@ static int parse_opt(int key, char* arg, struct argp_state *state) {
             char nodeName[nameLength];
             strncpy(nodeName, arg, nameLength);
 
-            hashmap_put(&NODE_MAPS, strdup(nodeName), strlen(nodeName), currentNode);
+            hashmap_put(&NODE_MAPS, strndup(nodeName, nameLength), nameLength, currentNode);
             break;
         }
     }
