@@ -11,6 +11,8 @@
 #include "./tsk_misc/tsk_loader.h"
 #include "utils/hashmap.h"
 
+thrd_t *nodeThreads = NULL;
+
 typedef struct {
     Node* node;
     char* name;
@@ -42,71 +44,55 @@ int init_nodes(void* const context, struct hashmap_element_s* const e) {
 int link_nodes(void* const context, struct hashmap_element_s* const e) {
     Node* node = (Node*) e->data;
     char* nodeName = (char*) e->key;
+    
     tsktopo_link_node(&NODE_MAPS, node, nodeName);
     return 0;
 }
 
-int loop_nodes(void* const context, struct hashmap_element_s* const e) {
+int start_nodes(void* const context, struct hashmap_element_s* const e) {
     Node* node = (Node*) e->data;
     char* nodeName = (char*) e->key;
+
+    int* index = (int*) context;
+
+    threadArgs* nodeArgs = malloc(sizeof(threadArgs));
+    nodeArgs->node = node;
+    nodeArgs->name = nodeName;
+
+    thrd_create(&nodeThreads[*index], run_node, nodeArgs);
+
+    *index += 1;
     return 0;
+}
+
+int cleanup_nodes(void* const context, void* const value) {
+    Node* node = (Node*) value;
+    node_cleanup(node);
+    free(node);
+    return 1;
 }
 
 int main(int argc, char **argv) {
     init_constants();
     parse_args(argc, argv);
 
-    struct hashmap_element_s* const temp = NULL;
-    hashmap_iterate_pairs(&NODE_MAPS, init_nodes, temp);
-    hashmap_iterate_pairs(&NODE_MAPS, link_nodes, temp);
-    hashmap_iterate_pairs(&NODE_MAPS, loop_nodes, temp);
+    // Parse Nodes
+    hashmap_iterate_pairs(&NODE_MAPS, init_nodes, NULL);
+    hashmap_iterate_pairs(&NODE_MAPS, link_nodes, NULL);
 
-    return 0;
-    Node left;
-    Node right;
-    node_init(&left);
-    node_init(&right);
+    // Start Nodes
+    unsigned int nodeCount = NODE_MAPS.size;
+    nodeThreads = calloc(sizeof(thrd_t), nodeCount);
 
-    tsksrc_to_node(&left, "left");
-    tsksrc_to_node(&right, "right");
-    
-    Pipe *topPipe = malloc(sizeof(Pipe));
-    topPipe->data = NULL;
+    int index = 0;
+    hashmap_iterate_pairs(&NODE_MAPS, start_nodes,&index);
 
-    Pipe *bottomPipe = malloc(sizeof(Pipe));
-    topPipe->data = NULL;
+    for (int i = 0; i < nodeCount; i++) {
+        thrd_join(nodeThreads[i], NULL);
+    }
 
-    sem_init(&topPipe->dataLock, 0, 1);
-    sem_init(&bottomPipe->dataLock, 0, 1);
+    hashmap_iterate(&NODE_MAPS, cleanup_nodes, NULL);
 
-    left.writePipes[RIGHT] = topPipe;
-    left.readPipes[RIGHT] = bottomPipe;
-    right.readPipes[LEFT] = topPipe;
-    right.writePipes[LEFT] = bottomPipe;
-
-    threadArgs leftArg = {
-        .node=&left,
-        .name="Left",
-    };
-
-    threadArgs rightArg = {
-        .node=&right,
-        .name="Right",
-    };
-
-    thrd_t leftThrd, rightThrd;
-
-    thrd_create(&leftThrd, run_node, &leftArg);
-    thrd_create(&rightThrd, run_node, &rightArg);
-
-    thrd_join(leftThrd, NULL);
-    thrd_join(rightThrd, NULL);
-
-    node_cleanup(&left);
-    node_cleanup(&right);
-
-    free(topPipe);
-    free(bottomPipe);
-
+    free(nodeThreads);
     return 0;
 }
