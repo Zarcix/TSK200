@@ -34,23 +34,32 @@ int run_node(void* arg) {
 int init_nodes(void* const context, struct hashmap_element_s* const e) {
     Node* node = (Node*) e->data;
     char* nodeName = (char*) e->key;
+    if (NODE_OUTPUT) printf("Node '%s' registered.\n", nodeName);
     tsksrc_to_node(node, nodeName);
     return 0;
 }
 
 int link_nodes(void* const context, struct hashmap_element_s* const e) {
-    printf("Node: '%s'\n", (char*)e->key);
+    Node* node = (Node*) e->data;
+    char* nodeName = (char*) e->key;
+    tsktopo_link_node(&NODE_MAPS, node, nodeName);
+    return 0;
+}
+
+int loop_nodes(void* const context, struct hashmap_element_s* const e) {
+    Node* node = (Node*) e->data;
+    char* nodeName = (char*) e->key;
     return 0;
 }
 
 int main(int argc, char **argv) {
+    init_constants();
     parse_args(argc, argv);
 
     struct hashmap_element_s* const temp = NULL;
     hashmap_iterate_pairs(&NODE_MAPS, init_nodes, temp);
     hashmap_iterate_pairs(&NODE_MAPS, link_nodes, temp);
-
-    Node* node = (Node*)hashmap_get(&NODE_MAPS, "nodeA", strlen("nodeA"));
+    hashmap_iterate_pairs(&NODE_MAPS, loop_nodes, temp);
 
     return 0;
     Node left;

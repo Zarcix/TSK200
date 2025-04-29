@@ -52,3 +52,32 @@ Data str_to_data(char* str) {
     return strData;
 }
 
+Port str_to_port(char* str) {
+    for (int i = 0; i < PORT_COUNT; i++) {
+        if (0 == strcmp(PORT_AS_STR[i], str)) {
+            return i;
+        }
+    }
+
+    return ANY;
+}
+
+Port reverse_port(Port port) {
+    switch (port) {
+        case UP: {
+            return DOWN;
+        }
+        case DOWN: {
+            return UP;
+        }
+        case LEFT: {
+            return RIGHT;
+        }
+        case RIGHT: {
+            return LEFT;
+        }
+        default: {
+            return port;
+        }
+    }
+}

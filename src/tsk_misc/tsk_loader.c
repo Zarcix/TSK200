@@ -14,17 +14,18 @@
 #include "../utils/strfun.h"
 
 void read_next_line(FILE *fd, char *section) {
-    fgets(section, MAX_STR_SIZE, fd);
-    if (0 == strcmp(section, "")) {
-        section = "";
-        return;
+    while (fgets(section, MAX_STR_SIZE, fd)) {
+        // Remove trailing newline character, if any
+        section[strcspn(section, "\n")] = '\0';
+
+        // Skip empty lines
+        if (section[0] != '\0') {
+            return;
+        }
     }
 
-    // Skip over empty lines
-    while (0 == strcmp(section, "\n")) {
-        fgets(section, MAX_STR_SIZE, fd);
-    }
-    section[strcspn(section, "\n")] = '\0';
+    // If we reach EOF or no non-empty line is found, set section to empty
+    section[0] = '\0';
 }
 
 void read_instructions(Node* node, char *nodeName) {
@@ -104,8 +105,67 @@ void read_instructions(Node* node, char *nodeName) {
     node->instructionCount = instructionCounter;
 }
 
-void read_topology(FILE *fd) {
-    // TODO Once I figure out how tf to get MOV working
+void read_topology(const struct hashmap_s* const nodeMap, Node* node, char* nodeName) {
+    FILE *fd = fopen(nodeName, "r");
+
+    if (NULL == fd) {
+        printf("read_topology Error !! Failed to read topology from: %s\n", nodeName);
+        exit(SIGABRT);
+    }
+    
+    char* token;
+    while (!feof(fd)) {
+        char line[MAX_STR_SIZE] = "";
+        read_next_line(fd, line);
+        // If there is nothing after it's now null.
+        if (0 == strcmp(line, "")) {
+            break;
+        }
+
+        // Grab tokens for parsing
+        token = strtok(line, ":");
+        char* directionToken = strdup(token);
+
+        token = strtok(NULL, ":");
+        char* otherNodeName = strdup(token);
+
+        token = strtok(NULL, ":");
+        if (NULL != token) {
+            printf("Extra tokens received: %s\n", token);
+        }
+
+        // Parse tokens
+        Port direction = str_to_port(directionToken);
+        Port otherDirection = reverse_port(direction);
+        Node* otherNode = hashmap_get(nodeMap, otherNodeName, strlen(otherNodeName));
+
+        if (NULL == otherNode) {
+            printf("Node '%s' not found. Exiting.\n", otherNodeName);
+            exit(SIGABRT);
+        }
+
+        // Check if a pipe has already been registered
+        if (NULL != node->writePipes[direction]) {
+            printf("Node '%s' already has a write pipe registered at %s. Exiting.\n", nodeName, PORT_AS_STR[direction]);
+            exit(SIGABRT);
+        }
+
+        if (NULL != otherNode->readPipes[otherDirection]) {
+            printf("Node '%s' already has a read pipe registered at %s. Exiting.\n", otherNodeName, PORT_AS_STR[otherDirection]);
+            exit(SIGABRT);
+        }
+
+        // Only write to write pipes. Freeing will also happen on write pipes only
+        Pipe* pipeConnector = malloc(sizeof(Pipe));
+
+        sem_init(&pipeConnector->dataLock, 0, 1);
+
+        node->writePipes[direction] = pipeConnector;
+        otherNode->readPipes[otherDirection] = pipeConnector;
+
+        free(directionToken);
+        free(otherNodeName);
+    }
 }
 
 /* Public Functions */
@@ -116,3 +176,8 @@ void tsksrc_to_node(Node* node, char* nodeName) {
     read_instructions(node, topoPath);
 }
 
+void tsktopo_link_node(const struct hashmap_s* const nodeMap, Node* node, char* nodeName) {
+    char topoPath[MAX_STR_SIZE] = "";
+    sprintf(topoPath, "%s.topo", nodeName);
+    read_topology(nodeMap, node, topoPath);
+}

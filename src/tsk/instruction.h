@@ -142,5 +142,8 @@ typedef struct {
 
 OPCode str_to_opcode(char* str);
 Data str_to_data(char* str);
+Port str_to_port(char* str);
+
+Port reverse_port(Port port);
 
 #endif

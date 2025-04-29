@@ -513,5 +513,9 @@ void node_write(Node *node, Port writeTo, int value) {
 void node_cleanup(Node *node) {
     free(node->instructionList);
     hashmap_destroy(&node->labelMap);
+
+    for (int i = 0; i < PIPE_COUNT; i++) {
+        free(node->writePipes[i]);
+    }
 }
 

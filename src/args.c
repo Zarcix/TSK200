@@ -14,6 +14,7 @@ static struct argp_option program_options[] = {
 static int parse_opt(int key, char* arg, struct argp_state *state) {
     switch (key) {
         case 'v': {
+            printf("Verbose Mode Activated.\n");
             NODE_OUTPUT = true;
             break;
         }
@@ -26,7 +27,7 @@ static int parse_opt(int key, char* arg, struct argp_state *state) {
             strncpy(nodeName, arg, nameLength);
             nodeName[nameLength] = '\0';
 
-            hashmap_put(&NODE_MAPS, strdup(nodeName), nameLength + 1, currentNode);
+            hashmap_put(&NODE_MAPS, strdup(nodeName), nameLength, currentNode);
             break;
         }
     }
@@ -34,7 +35,6 @@ static int parse_opt(int key, char* arg, struct argp_state *state) {
 }
 
 static int parse_args(int argc, char **argv) {
-    init_constants();
     struct argp argp = { program_options, parse_opt, "NODE"};
     return argp_parse (&argp, argc, argv, 0, 0, 0);
 }
