@@ -30,6 +30,8 @@ int run_node(void* arg) {
         node_tick(node);
     }
 
+    free(arg);
+
     return 0;
 }
 
@@ -65,11 +67,14 @@ int start_nodes(void* const context, struct hashmap_element_s* const e) {
     return 0;
 }
 
-int cleanup_nodes(void* const context, void* const value) {
-    Node* node = (Node*) value;
+int cleanup_nodes(void* const context, struct hashmap_element_s* const e) {
+    Node* node = (Node*) e->data;
+    char* nodeName = (char*) e->key;
+
     node_cleanup(node);
     free(node);
-    return 1;
+    free(nodeName);
+    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -91,7 +96,8 @@ int main(int argc, char **argv) {
         thrd_join(nodeThreads[i], NULL);
     }
 
-    hashmap_iterate(&NODE_MAPS, cleanup_nodes, NULL);
+    hashmap_iterate_pairs(&NODE_MAPS, cleanup_nodes, NULL);
+    hashmap_destroy(&NODE_MAPS);
 
     free(nodeThreads);
     return 0;

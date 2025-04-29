@@ -103,6 +103,7 @@ void read_instructions(Node* node, char *nodeName) {
     }
 
     node->instructionCount = instructionCounter;
+    fclose(fd);
 }
 
 void read_topology(const struct hashmap_s* const nodeMap, Node* node, char* nodeName) {
@@ -159,6 +160,7 @@ void read_topology(const struct hashmap_s* const nodeMap, Node* node, char* node
         Pipe* pipeConnector = malloc(sizeof(Pipe));
 
         sem_init(&pipeConnector->dataLock, 0, 1);
+        pipeConnector->data = NULL;
 
         node->writePipes[direction] = pipeConnector;
         otherNode->readPipes[otherDirection] = pipeConnector;
@@ -166,6 +168,7 @@ void read_topology(const struct hashmap_s* const nodeMap, Node* node, char* node
         free(directionToken);
         free(otherNodeName);
     }
+    fclose(fd);
 }
 
 /* Public Functions */
