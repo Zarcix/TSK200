@@ -22,6 +22,7 @@ int run_node(void* arg) {
     threadArgs *args = (threadArgs*)arg;
     Node* node = args->node;
     char* name = args->name;
+    free(arg);
 
     while (true) {
         if (NODE_OUTPUT) {
@@ -29,8 +30,6 @@ int run_node(void* arg) {
         }
         node_tick(node);
     }
-
-    free(arg);
 
     return 0;
 }
