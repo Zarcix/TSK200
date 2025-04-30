@@ -1,96 +1,103 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
+#include <argp.h>
+#include <threads.h>
+#include <time.h>
 
-#include "./tsk-src/node.h"
-#include "./tsk-src/tsk_loader.h"
+#include "./constants.h"
+#include "./args.c"
 
-static bool PROGRAM_EXIT = false;
-static char* COMMAND_PATH = "";
-const int PARSABLE_ARGS = 3;
+#include "./tsk/node.h"
+#include "./tsk_misc/tsk_loader.h"
+#include "utils/hashmap.h"
 
-int* parse_args(int argc, char **argv) {
-    // argList[0] = delay time
-    // arglist[1] = max output
-    int* argList = malloc(PARSABLE_ARGS * sizeof(int));
-    argList[0] = -1;
-    argList[1] = -1;
+thrd_t *nodeThreads = NULL;
 
-    bool seenArgParam = false;
-    int argType = 0;
+typedef struct {
+    Node* node;
+    char* name;
+} threadArgs;
 
-    for (int argIndex = 1; argIndex < argc; ++argIndex) {
-        char* argument = argv[argIndex];
+int run_node(void* arg) {
+    threadArgs *args = (threadArgs*)arg;
+    Node* node = args->node;
+    char* name = args->name;
+    free(arg);
 
-        if (seenArgParam && argType == 2) {
-            // Parse Strings
-            COMMAND_PATH = argument;
-            seenArgParam = false;
-            continue;
+    while (true) {
+        if (NODE_OUTPUT) {
+            printf("Node '%s' | IP: %d | ACC: %d\n", name, node->instructionPointer, node->ACC);
         }
-
-        if (seenArgParam) {
-            // Parse Ints
-            char *endCheck;
-            int num = strtol(argument, &endCheck, 10);
-
-            if (*endCheck != '\0') {
-                printf("Invalid input.\n");
-                continue;
-            }
-            argList[argType] = num;
-            seenArgParam = false;
-        }
-
-        if (0 == strcmp(argument, "--delay-time")) {
-            seenArgParam = true;
-            argType = 0;
-        } else if (0 == strcmp(argument, "--max-outputs")) {
-            seenArgParam = true;
-            argType = 1;
-        } else if (0 == strcmp(argument, "--path")) {
-            seenArgParam = true;
-            argType = 2;
-        }
+        node_tick(node);
     }
 
-    return argList;
+    return 0;
+}
+
+int init_nodes(void* const context, struct hashmap_element_s* const e) {
+    Node* node = (Node*) e->data;
+    char* nodeName = (char*) e->key;
+    if (NODE_OUTPUT) printf("Node '%s' registered.\n", nodeName);
+    tsksrc_to_node(node, nodeName);
+    return 0;
+}
+
+int link_nodes(void* const context, struct hashmap_element_s* const e) {
+    Node* node = (Node*) e->data;
+    char* nodeName = (char*) e->key;
+    
+    tsktopo_link_node(&NODE_MAPS, node, nodeName);
+    return 0;
+}
+
+int start_nodes(void* const context, struct hashmap_element_s* const e) {
+    Node* node = (Node*) e->data;
+    char* nodeName = (char*) e->key;
+
+    int* index = (int*) context;
+
+    threadArgs* nodeArgs = malloc(sizeof(threadArgs));
+    nodeArgs->node = node;
+    nodeArgs->name = nodeName;
+
+    thrd_create(&nodeThreads[*index], run_node, nodeArgs);
+
+    *index += 1;
+    return 0;
+}
+
+int cleanup_nodes(void* const context, struct hashmap_element_s* const e) {
+    Node* node = (Node*) e->data;
+    char* nodeName = (char*) e->key;
+
+    node_cleanup(node);
+    free(node);
+    free(nodeName);
+    return 0;
 }
 
 int main(int argc, char **argv) {
-    int *args = parse_args(argc, argv);
-    int tickDelay = args[0];
-    int maxOutputs = args[1];
+    init_constants();
+    parse_args(argc, argv);
 
-    Node** nodeList = tsk_to_node(COMMAND_PATH);
-    int nodeIndex = 0;
-    if (NULL == nodeList[nodeIndex]) {
-        return -1;
+    // Parse Nodes
+    hashmap_iterate_pairs(&NODE_MAPS, init_nodes, NULL);
+    hashmap_iterate_pairs(&NODE_MAPS, link_nodes, NULL);
+
+    // Start Nodes
+    unsigned int nodeCount = NODE_MAPS.size;
+    nodeThreads = calloc(sizeof(thrd_t), nodeCount);
+
+    int index = 0;
+    hashmap_iterate_pairs(&NODE_MAPS, start_nodes,&index);
+
+    for (int i = 0; i < nodeCount; i++) {
+        thrd_join(nodeThreads[i], NULL);
     }
-    while (true) {
-        if (NULL == nodeList[nodeIndex]) {
-            nodeIndex = 0;
-        }
 
-        Node *currentNode = nodeList[nodeIndex];
+    hashmap_iterate_pairs(&NODE_MAPS, cleanup_nodes, NULL);
+    hashmap_destroy(&NODE_MAPS);
 
-        if (OUTPUT == currentNode->type && maxOutputs > 0 && currentNode->typeData.outputCount >= maxOutputs) {
-            PROGRAM_EXIT = true;
-        }
-
-        if (PROGRAM_EXIT && nodeIndex == 0) {
-            // Ensure that all nodes tick properly before stopping program
-            break;
-        }
-
-        if (tickDelay > 0) {
-            sleep(tickDelay);
-        }
-
-        node_tick(currentNode);
-
-
-        nodeIndex++;
-    }
+    free(nodeThreads);
+    return 0;
 }

@@ -23,6 +23,10 @@ For debug:
 $ make debug
 ```
 
+## Testing
+
+Ensure that testing is done in the repository's **root** folder. Some tests may fail if you are in another folder while running `make test`.
+
 ## Usage
 
 ```bash
