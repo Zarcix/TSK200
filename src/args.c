@@ -2,6 +2,7 @@
 #include <string.h>
 #include <libgen.h>
 
+#include "./args.h"
 #include "./constants.h"
 
 #include "./tsk/node.h"
@@ -11,7 +12,7 @@ static struct argp_option program_options[] = {
     { 0 }
 };
 
-static int parse_opt(int key, char* arg, struct argp_state *state) {
+int parse_opt(int key, char* arg, struct argp_state *state) {
     switch (key) {
         case 'v': {
             printf("Verbose Mode Activated.\n");
@@ -34,7 +35,7 @@ static int parse_opt(int key, char* arg, struct argp_state *state) {
     return 0;
 }
 
-static int parse_args(int argc, char **argv) {
+int parse_args(int argc, char **argv) {
     struct argp argp = { program_options, parse_opt, "NODE"};
     return argp_parse (&argp, argc, argv, 0, 0, 0);
 }

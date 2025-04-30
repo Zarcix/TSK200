@@ -5,7 +5,7 @@
 #include <time.h>
 
 #include "./constants.h"
-#include "./args.c"
+#include "./args.h"
 
 #include "./tsk/node.h"
 #include "./tsk_misc/tsk_loader.h"

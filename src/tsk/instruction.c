@@ -5,6 +5,37 @@
 
 #include "./instruction.h"
 
+const char* OPCODE_AS_STR[] = {
+	"SUB",
+	"ADD",
+	"NEG",
+	"NOP",
+	"JEZ",
+	"JMP",
+	"JNZ",
+	"JGZ",
+	"JLZ",
+	"JRO",
+	"SAV",
+	"SWP",
+	"MOV",
+	"LABEL",
+	"EXT"
+};
+
+const char* PORT_AS_STR[] = {
+	"LEFT",
+	"RIGHT",
+	"UP",
+	"DOWN",
+	"ANY",
+
+	"NIL",
+	"LAST",
+
+	"ACC"
+};
+
 OPCode str_to_opcode(char* str) {
     for (int i = 0; i < OPCODE_COUNT; i++) {
         if (0 == strcmp(OPCODE_AS_STR[i], str)) {

@@ -34,23 +34,7 @@ typedef enum {
 	EXT,
 } OPCode;
 
-static const char* OPCODE_AS_STR[] = {
-	"SUB",
-	"ADD",
-	"NEG",
-	"NOP",
-	"JEZ",
-	"JMP",
-	"JNZ",
-	"JGZ",
-	"JLZ",
-	"JRO",
-	"SAV",
-	"SWP",
-	"MOV",
-	"LABEL",
-	"EXT"
-};
+extern const char* OPCODE_AS_STR[];
 
 static const int OPCODE_COUNT = 15;
 
@@ -90,18 +74,7 @@ static const Port EXTERNAL_PORT_LIST[] = {
 
 static const int EXTERNAL_PORT_COUNT = 4;
 
-static const char *PORT_AS_STR[] = {
-	"LEFT",
-	"RIGHT",
-	"UP",
-	"DOWN",
-	"ANY",
-
-	"NIL",
-	"LAST",
-
-	"ACC"
-};
+extern const char *PORT_AS_STR[];
 
 static const int PORT_COUNT = 8;
 
