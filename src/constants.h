@@ -5,10 +5,8 @@
 #include "./utils/hashmap.h"
 
 static struct hashmap_s NODE_MAPS;
-static bool NODE_OUTPUT = false;
+extern bool NODE_OUTPUT;
 
-static void init_constants() {
-    hashmap_create(32, &NODE_MAPS);
-}
+void init_constants();
 
 #endif
