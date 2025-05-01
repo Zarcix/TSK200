@@ -1,5 +1,6 @@
 #include "./constants.h"
 
+struct hashmap_s NODE_MAPS;
 bool NODE_OUTPUT = false;
 
 void init_constants() {
