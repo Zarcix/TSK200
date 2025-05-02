@@ -36,13 +36,19 @@ set(MISC_SOURCES
     ${MSCSRC}/tsk_loader.c
 )
 
+set(MAIN_SOURCES
+    src/tsk.c
+    src/args.c
+    src/constants.c
+)
+
 # Create object libraries for each group
 add_library(tsk_objects OBJECT ${TSK_SOURCES})
 add_library(util_objects OBJECT ${UTIL_SOURCES})
 add_library(misc_objects OBJECT ${MISC_SOURCES})
 
 # Main TSK binary
-add_executable(tsk src/tsk.c src/args.c src/constants.c
+add_executable(tsk ${MAIN_SOURCES}
     $<TARGET_OBJECTS:tsk_objects>
     $<TARGET_OBJECTS:util_objects>
     $<TARGET_OBJECTS:misc_objects>
