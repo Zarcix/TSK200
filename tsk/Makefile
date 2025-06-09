@@ -35,7 +35,7 @@ clean:
 ## Main TSK
 
 tsk: prebuild utils misc node instruction src/tsk.c 
-	$(CC) $(CFLAGS) -o tsk src/tsk.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o
+	$(CC) $(CFLAGS) -o tsk src/tsk.c src/constants.c src/args.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o
 
 prebuild:
 	rm -rf build
