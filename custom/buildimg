@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd image
+
+find . -print0 | cpio --null -ov --format=newc >../initrd.img

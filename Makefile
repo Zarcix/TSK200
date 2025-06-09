@@ -1,68 +1,37 @@
-### Constants ###
+# Variables
+BUILD_PATH = $(PWD)/build
 
-CC=clang
-CFLAGS=-std=gnu23 -Wall -Wpedantic
+BUILD_IMAGE_PATH = $(BUILD_PATH)/image
+BUILD_OS_PATH = $(BUILD_PATH)/tskos
+BUILD_TSK_PATH = $(BUILD_PATH)/tsk
 
-TSKSRC=src/tsk
-TSKBLD=build/tsk
+IMAGE_BIN_PATH = /usr/local/bin
 
-UTILSRC=src/utils
-UTILBLD=build/utils
-
-MSCSRC=src/tsk_misc
-MSCBLD=build/tsk_misc
-
-## Main Run Commands
-
-release: CFLAGS += -O3 -g
-release: tsk
-
-debug: CFLAGS += -g -DDEBUG
-debug: tsk
-
-test: CFLAGS += -g -DDEBUG
-test: prebuild utils misc node instruction 
-	$(CC) $(CFLAGS) -o test_runner test/runner.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o -l criterion
-	./test_runner
+# Build Commands
+default: clean \
+	setup \
+	build_tsk \
+	build_tskos \
+	create_img
 
 clean:
-	rm -rf **.log
 	rm -rf build
-	rm -f tsk test_runner
+	make -s -C ./tsk clean
 
-## Sub Commands
+setup:
+	mkdir -p build/
+	cp -r ./imageraw $(BUILD_IMAGE_PATH)
+	mkdir -p $(BUILD_OS_PATH)
+	mkdir -p $(BUILD_TSK_PATH)
 
-## Main TSK
+build_tskos:
+	gcc -lncurses ./src/tsk_os.c -o $(BUILD_OS_PATH)/starttsk
+	cp $(BUILD_OS_PATH)/starttsk $(BUILD_IMAGE_PATH)$(IMAGE_BIN_PATH)/starttsk
 
-tsk: prebuild utils misc node instruction src/tsk.c 
-	$(CC) $(CFLAGS) -o tsk src/tsk.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o
+build_tsk:
+	make -s -C ./tsk clean
+	make -s -C ./tsk release
+	cp ./tsk/tsk $(BUILD_IMAGE_PATH)$(IMAGE_BIN_PATH)/tsk
 
-prebuild:
-	rm -rf build
-	mkdir -p $(MSCBLD)
-	mkdir -p $(TSKBLD)
-	mkdir -p $(UTILBLD)
-
-# TSK
-node: $(TSKSRC)/node.h $(TSKSRC)/node.c
-	$(CC) $(CFLAGS) -c $(TSKSRC)/node.c -o $(TSKBLD)/node.o
-
-instruction: $(TSKSRC)/instruction.h $(TSKSRC)/instruction.c
-	$(CC) $(CFLAGS) -c $(TSKSRC)/instruction.c -o $(TSKBLD)/instruction.o
-
-# UTILS
-
-utils: linked_list strfun
-
-linked_list: $(UTILSRC)/linkedlist.h $(UTILSRC)/linkedlist.c
-	$(CC) $(CFLAGS) -c $(UTILSRC)/linkedlist.c -o $(UTILBLD)/linkedlist.o
-
-strfun: $(UTILSRC)/strfun.h $(UTILSRC)/strfun.c
-	$(CC) $(CFLAGS) -c $(UTILSRC)/strfun.c -o $(UTILBLD)/strfun.o
-
-# MISC
-
-misc: tsk_loader
-
-tsk_loader: $(MSCSRC)/tsk_loader.h $(MSCSRC)/tsk_loader.c
-	$(CC) $(CFLAGS) -c $(MSCSRC)/tsk_loader.c -o $(MSCBLD)/tsk_loader.o
+create_img:
+	cd $(BUILD_IMAGE_PATH) ; find . -print0 | cpio --null -o --format=newc > $(BUILD_PATH)/initrd.img

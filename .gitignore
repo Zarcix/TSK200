@@ -53,3 +53,7 @@ dkms.conf
 
 # Application Files
 *.log
+
+# Build Files
+.xmake/
+build
