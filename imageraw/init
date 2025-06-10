@@ -1,7 +1,0 @@
-#!/bin/bash
-
-mount -t sysfs sysfs /sys
-mount -t proc proc /proc
-mount -t devtmpfs devtmpfs /dev
-
-exec setsid bash -c "starttsk" </dev/ttyS0 >/dev/ttyS0 2>&1
