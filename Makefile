@@ -35,3 +35,7 @@ build_tsk:
 
 create_img:
 	cd $(BUILD_IMAGE_PATH) ; find . -print0 | cpio --null -o --format=newc > $(BUILD_PATH)/initrd.img
+
+# Run
+run:
+	qemu-system-x86_64 -net none  -kernel /boot/vmlinuz-linux -initrd build/initrd.img -m 200M -enable-kvm -smp sockets=1,cores=2,threads=2 -append "console=ttyS0" -nographic
