@@ -8,7 +8,9 @@
 #include "./tsk/node.h"
 
 static struct argp_option program_options[] = {
-    { "verbose", 'v', 0, 0, "Node(s) to use with TSK"},
+    { "verbose", 'v', 0, 0, "Node(s) to use with TSK" },
+    { "help", 'h', 0, OPTION_HIDDEN, "Provide help list" },
+    { "config", 'c', "FILE", 0, "Config file containing a TSK layout" },
     { 0 }
 };
 
@@ -17,6 +19,10 @@ int parse_opt(int key, char* arg, struct argp_state *state) {
         case 'v': {
             printf("Verbose Mode Activated.\n");
             NODE_OUTPUT = true;
+            break;
+        }
+        case 'h': {
+            argp_state_help(state, stdout, ARGP_HELP_STD_HELP);
             break;
         }
         case ARGP_KEY_ARG: {
