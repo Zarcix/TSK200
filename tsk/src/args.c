@@ -8,6 +8,8 @@
 
 #include "./tsk/node.h"
 
+#include "./tsk_misc/tsk_loader.h"
+
 static struct argp_option program_options[] = {
     { "verbose", 'v', 0, 0, "Node(s) to use with TSK" },
     { "help", 'h', 0, OPTION_HIDDEN, "Provide help list" },
@@ -67,7 +69,7 @@ void parse_yaml_doc(struct fy_document *fyd) {
         size_t instructionListLen = 0;
         const char *nodeInstructions = fy_node_get_scalar(instructionList, &instructionListLen);
         if (nodeInstructions) {
-            printf("Node %s Instructions:\n%s\n", nodeName, nodeInstructions);
+            tsksrc_to_node(newNode, nodeInstructions);
         }
         /* Map the nodes together*/
     }
