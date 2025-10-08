@@ -12,6 +12,11 @@ UTILBLD=build/utils
 MSCSRC=src/tsk_misc
 MSCBLD=build/tsk_misc
 
+## Packages ##
+
+CFLAGS+= `pkg-config --cflags libfyaml`
+LDFLAGS+= `pkg-config --libs libfyaml`
+
 ## Main Run Commands
 
 release: CFLAGS += -O3 -g
@@ -35,7 +40,7 @@ clean:
 ## Main TSK
 
 tsk: prebuild utils misc node instruction src/tsk.c 
-	$(CC) $(CFLAGS) -o tsk src/tsk.c src/constants.c src/args.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o
+	$(CC) $(CFLAGS) -o tsk src/tsk.c src/constants.c src/args.c $(MSCBLD)/*.o $(TSKBLD)/*.o $(UTILBLD)/*.o $(LDFLAGS)
 
 prebuild:
 	rm -rf build

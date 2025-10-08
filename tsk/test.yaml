@@ -1,0 +1,24 @@
+programName: someName
+
+nodeList:
+  - node1
+  - node2
+  - node3
+
+nodeInstructions:
+  node1: |
+    MOV ACC ACC
+    ADD ACC
+    SUB 10
+  node2: |
+    MOV 5 UP
+    MOV UP DOWN
+  node3: []
+
+nodeMapping:
+  node1:
+    UP: node2
+    DOWN: node3
+  node2:
+    LEFT: node1
+    RIGHT: node2
