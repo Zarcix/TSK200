@@ -13,6 +13,59 @@
 #include "../utils/hashmap.h"
 #include "../utils/strfun.h"
 
+Instruction text_to_instruction(char *instructionString) {
+    Instruction opInst = {0};
+
+    trim_str(instructionString);
+
+    char *op_str = strtok(instructionString, " ");
+    char *src_str = strtok(NULL, " ");
+    char *dest_str = strtok(NULL, " ");
+
+    OPCode opcode = str_to_opcode(op_str);
+    Data src = str_to_data(src_str);
+    Data dest = str_to_data(dest_str);
+
+    opInst.operation = opcode;
+    opInst.src = src;
+    opInst.dest = dest;
+
+    return opInst;
+}
+
+bool text_to_label(Node *parentNode, char *labelLine, int instructionCount) {
+    if (NULL != strstr(labelLine, ":")) {
+        return false;
+    }
+
+    char *labelName = strtok(labelLine, ":");
+    if (NULL != strstr(labelName, " ")) {
+        printf("read_instructions Error !! No spaces allowed in label name.");
+        exit(1);
+    }
+
+    char *mapKey = strdup(labelName);
+    int *mapVal = malloc(sizeof(int));
+    *mapVal = instructionCount;
+    if (0 != hashmap_put(&parentNode->labelMap, mapKey, strlen(labelName), mapVal)) {
+        printf("read_instructions Error !! Unable to add label '%s' to label hashmap", labelName);
+        exit(SIGABRT);
+    }
+
+    Data src = {
+        .type = STRING,
+        .value.dataStr = mapKey
+    };
+
+    Instruction labelInst = {
+        .operation = LABEL,
+        .src = src,
+    };
+
+    parentNode->instructionList[instructionCount] = labelInst;
+    return true;
+}
+
 void read_next_line(FILE *fd, char *section) {
     while (fgets(section, MAX_STR_SIZE, fd)) {
         // Remove trailing newline character, if any
@@ -47,56 +100,16 @@ void read_instructions(Node* node, char *nodeName) {
         }
 
         char *labelSep = line;
-        if (NULL != strstr(line, ":")) {
-            labelSep = strtok(line, ":");
-            if (NULL != strstr(labelSep, " ")) {
-                printf("read_instructions Error !! No spaces allowed in label name.");
-                exit(SIGABRT);
-            }
-            
-            char *mapKey = strdup(labelSep);
-            int *mapVal = malloc(sizeof(int));
-            *mapVal = instructionCounter;
-            if (0 != hashmap_put(&node->labelMap, mapKey, strlen(labelSep), mapVal)) {
-                printf("read_instructions Error !! Unable to add label '%s' to label hashmap", labelSep);
-                exit(SIGABRT);
-            }
-
-            Data src = {
-                .type = STRING,
-                .value.dataStr = strdup(labelSep)
-            };
-
-            Instruction labelInst = {
-                .operation = LABEL,
-                .src = src,
-            };
-
-            node->instructionList[instructionCounter] = labelInst;
-
-            labelSep = strtok(NULL, "");
+        if (text_to_label(node, line, instructionCounter)) {
             instructionCounter++;
+            continue;
         }
 
         if (NULL == labelSep) {
             continue;
         }
 
-        trim_str(labelSep);
-
-        char *op_str = strtok(labelSep, " ");
-        char *src_str = strtok(NULL, " ");
-        char *dest_str = strtok(NULL, " ");
-
-        OPCode opcode = str_to_opcode(op_str);
-        Data src = str_to_data(src_str);
-        Data dest = str_to_data(dest_str);
-
-        Instruction opInst = {
-            .operation = opcode,
-            .src = src,
-            .dest = dest,
-        };
+        Instruction opInst = text_to_instruction(labelSep);
 
         node->instructionList[instructionCounter] = opInst;
         instructionCounter++;
