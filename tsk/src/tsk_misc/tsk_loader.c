@@ -209,7 +209,7 @@ void parse_topology_map() {
 
 /* Public Functions */
 
-void tsksrc_to_node(Node* node, char* tskRawSrc) {
+void tsksrc_to_node(Node* node, const char* tskRawSrc) {
     // Form the raw instruction list
     int instructionCount = 0;
     for (int i = 0; tskRawSrc[i] != '\0'; i++) {
@@ -231,8 +231,10 @@ void tsksrc_to_node(Node* node, char* tskRawSrc) {
 
     parse_instruction_list(instructionList, node->instructionList, instructionCount);
 
+    node->instructionCount = instructionCount;
+
     for (int i = 0; i < instructionCount; i++) {
-        printf("Node Instruction: %s\n", node->instructionList[i].operation);
+        printf("Node Instruction: %d\n", node->instructionList[i].operation);
     }
 }
 

@@ -7,13 +7,13 @@ nodeList:
 
 nodeInstructions:
   node1: |
-    MOV ACC ACC
-    ADD ACC
-    SUB 10
+    ADD 1
   node2: |
-    MOV 5 UP
-    MOV UP DOWN
-  node3: []
+    ADD 1
+    SUB 1
+  node3: |
+    ADD 1
+    SUB ACC
 
 nodeMapping:
   node1:

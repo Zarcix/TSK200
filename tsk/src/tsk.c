@@ -34,14 +34,6 @@ int run_node(void* arg) {
     return 0;
 }
 
-int init_nodes(void* const context, struct hashmap_element_s* const e) {
-    Node* node = (Node*) e->data;
-    char* nodeName = (char*) e->key;
-    if (NODE_OUTPUT) printf("Node '%s' registered.\n", nodeName);
-    tsksrc_to_node(node, nodeName);
-    return 0;
-}
-
 int link_nodes(void* const context, struct hashmap_element_s* const e) {
     Node* node = (Node*) e->data;
     char* nodeName = (char*) e->key;
@@ -81,7 +73,6 @@ int main(int argc, char **argv) {
     parse_args(argc, argv);
 
     // Parse Nodes
-    hashmap_iterate_pairs(&NODE_MAPS, init_nodes, NULL);
     hashmap_iterate_pairs(&NODE_MAPS, link_nodes, NULL);
 
     // Start Nodes
