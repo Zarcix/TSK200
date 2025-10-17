@@ -2,56 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 
 #include "./tsk_loader.h"
 
 #include "../tsk/node.h"
-#include "../tsk/tsk_constants.h"
 #include "../tsk/instruction.h"
 
 #include "../utils/hashmap.h"
 #include "../utils/strfun.h"
+#include "../utils/clog.h"
 
-/* Base Parsers */
-
-void parse_instruction_list(char* rawInstructionList[], Instruction* instructionListToWrite, int instructionCount) {
-    for (int i = 0; i < instructionCount; i++) {
-        // Init Stuff
-        char opStr[MAX_STR_SIZE] = "";
-        char srcStr[MAX_STR_SIZE] = "";
-        char destStr[MAX_STR_SIZE] = "";
-
-        instructionListToWrite[i].operation = (OPCode){0};
-        instructionListToWrite[i].src = (Data){0};
-        instructionListToWrite[i].dest = (Data){0};
-
-        int opCount = sscanf(rawInstructionList[i], "%s %s %s", opStr, srcStr, destStr);
-
-        if (opCount == EOF) {
-            fprintf(stderr, "parse_instruction_list !! EOF issue reading the instruction line: %s\n", rawInstructionList[i]);
-            exit(EXIT_FAILURE);
-        }
-
-        instructionListToWrite[i].operation = str_to_opcode(opStr);
-
-        if (opCount <= 1) {
-            continue;
-        }
-
-        instructionListToWrite[i].src = str_to_data(srcStr);
-
-        if (opCount <= 2) {
-            continue;
-        }
-
-        instructionListToWrite[i].dest = str_to_data(destStr);
-    }
-}
-
-void parse_topology_map() {
-
-}
+#include "./parsers/parse_instruction.h"
 
 /* Wrapper Functions for Specific Use */
 
@@ -86,59 +47,6 @@ void parse_topology_map() {
 
 //     parentNode->instructionList[instructionCount] = labelInst;
 //     return true;
-// }
-
-// void read_next_line(FILE *fd, char *section) {
-//     while (fgets(section, MAX_STR_SIZE, fd)) {
-//         // Remove trailing newline character, if any
-//         section[strcspn(section, "\n")] = '\0';
-
-//         // Skip empty lines
-//         if (section[0] != '\0') {
-//             return;
-//         }
-//     }
-
-//     // If we reach EOF or no non-empty line is found, set section to empty
-//     section[0] = '\0';
-// }
-
-// void read_instructions(Node* node, char *nodeName) {
-//     // Read Node File
-//     FILE *fd = fopen(nodeName, "r");
-
-//     if (NULL == fd) {
-//         printf("read_instructions Error !! Failed to read instructions from: %s\n", nodeName);
-//         exit(SIGABRT);
-//     }
-
-//     int instructionCounter = 0;
-//     while (!feof(fd)) {
-//         char line[MAX_STR_SIZE] = "";
-//         read_next_line(fd, line);
-//         // If there is nothing after it's now null.
-//         if (0 == strcmp(line, "")) {
-//             break;
-//         }
-
-//         char *labelSep = line;
-//         if (text_to_label(node, line, instructionCounter)) {
-//             instructionCounter++;
-//             continue;
-//         }
-
-//         if (NULL == labelSep) {
-//             continue;
-//         }
-
-//         Instruction opInst = text_to_instruction(labelSep);
-
-//         node->instructionList[instructionCounter] = opInst;
-//         instructionCounter++;
-//     }
-
-//     node->instructionCount = instructionCounter;
-//     fclose(fd);
 // }
 
 // void read_topology(const struct hashmap_s* const nodeMap, Node* node, char* nodeName) {
@@ -229,12 +137,15 @@ void tsksrc_to_node(Node* node, const char* tskRawSrc) {
     }
     free(srcCopy);
 
-    parse_instruction_list(instructionList, node->instructionList, instructionCount);
+    parse_instruction_list(instructionCount, instructionList, node->instructionList);
 
     node->instructionCount = instructionCount;
 
     for (int i = 0; i < instructionCount; i++) {
-        printf("Node Instruction: %d\n", node->instructionList[i].operation);
+        DEBUG("Parsed Node Instruction and got %s\n", 
+            OPCODE_AS_STR[node->instructionList[i].operation]
+            
+        );
     }
 }
 

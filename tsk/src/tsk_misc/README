@@ -1,0 +1,8 @@
+# TSK Miscellaneous
+
+## What Is This Folder?
+
+This folder is used for everything that isn't explicitly needed for TSK to function
+- Think function wrappers and creators to create TSK notes
+- Argument parsing to create a tsk node
+- Program constants (not to be confused with TSK constants)

@@ -85,7 +85,7 @@ int parse_opt(int key, char* arg, struct argp_state *state) {
             break;
         }
         case 'h': {
-            argp_state_help(state, stdout, ARGP_HELP_STD_HELP);
+            argp_state_help(state, stdout, ARGP_HELP_STD_HELP); 
             break;
         }
         case 'c': {
