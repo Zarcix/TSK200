@@ -11,11 +11,17 @@ Instruction parse_single_instruction(char instruction[]) {
 
     char opStr[MAX_STR_SIZE] = "";
     char srcStr[MAX_STR_SIZE] = "";
+    char labelStr[MAX_STR_SIZE] = "";
     char destStr[MAX_STR_SIZE] = "";
 
+    int labelOpCount = sscanf(instruction, "%s:", labelStr);
     int opCount = sscanf(instruction, "%s %s %s", opStr, srcStr, destStr);
 
-    if (opCount == EOF) {
+    // Check for labels first. If labels don't match, we go with tradition op code parsing.
+    if (labelOpCount > 0) {
+        snprintf(opStr, MAX_STR_SIZE, "LABEL");
+        opCount = 2;
+    } else if (opCount == EOF) {
         FATAL("Reading instruction hit EOF: %s", instruction);
         exit(EXIT_FAILURE);
     }
