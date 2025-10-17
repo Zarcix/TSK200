@@ -7,7 +7,9 @@ nodeList:
 
 nodeInstructions:
   node1: |
+    LOOP:
     ADD 1
+    JMP LOOP
   node2: |
     ADD 1
     SUB 1
